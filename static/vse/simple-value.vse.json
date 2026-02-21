@@ -1,0 +1,75 @@
+{
+  "id": "simple-value",
+  "name": "Einfache Wertanzeige",
+  "description": "Zeigt einen KO-Wert mit Icon und Einheit an (dynamisches Widget)",
+  "category": "sensors",
+  "author": "KNX Automation",
+  "version": "1.0",
+  "width": 160,
+  "height": 120,
+  "render": "dynamic",
+  "inputs": {
+    "ko1": {
+      "name": "Wert",
+      "type": "number",
+      "description": "Gruppenadresse für den anzuzeigenden Wert"
+    }
+  },
+  "variables": {
+    "icon": {
+      "name": "Icon (MDI/Emoji)",
+      "type": "icon",
+      "default": "gauge"
+    },
+    "icon_size": {
+      "name": "Icon Größe (px)",
+      "type": "number",
+      "default": 28
+    },
+    "icon_color": {
+      "name": "Icon Farbe (RGB)",
+      "type": "text",
+      "default": "100,200,255"
+    },
+    "unit": {
+      "name": "Einheit",
+      "type": "text",
+      "default": ""
+    },
+    "decimals": {
+      "name": "Dezimalstellen",
+      "type": "number",
+      "default": 1
+    },
+    "font_size": {
+      "name": "Wert Schriftgröße (px)",
+      "type": "number",
+      "default": 32
+    },
+    "label_size": {
+      "name": "Label Schriftgröße (px)",
+      "type": "number",
+      "default": 12
+    },
+    "bg_color": {
+      "name": "Hintergrund (RGB)",
+      "type": "text",
+      "default": "40,40,40"
+    },
+    "bg_opacity": {
+      "name": "Hintergrund Deckkraft (%)",
+      "type": "number",
+      "default": 85
+    },
+    "border_radius": {
+      "name": "Eckenradius (px)",
+      "type": "number",
+      "default": 12
+    },
+    "layout": {
+      "name": "Layout (vertical/horizontal/icon-top)",
+      "type": "text",
+      "default": "icon-top"
+    }
+  }
+}

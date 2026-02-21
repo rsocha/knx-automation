@@ -1,0 +1,85 @@
+{
+  "id": "simple-toggle",
+  "name": "Einfacher Schalter",
+  "description": "Ein/Aus Schalter mit Icon (dynamisches Widget)",
+  "category": "switches",
+  "author": "KNX Automation",
+  "version": "1.0",
+  "width": 140,
+  "height": 100,
+  "render": "dynamic",
+  "inputs": {
+    "ko1": {
+      "name": "Status",
+      "type": "bool",
+      "description": "Gruppenadresse für Status (lesen)"
+    },
+    "ko2": {
+      "name": "Schalten",
+      "type": "bool",
+      "description": "Gruppenadresse zum Schalten (optional)"
+    }
+  },
+  "variables": {
+    "icon": {
+      "name": "Icon (MDI)",
+      "type": "icon",
+      "default": "lightbulb"
+    },
+    "icon_size": {
+      "name": "Icon Größe (px)",
+      "type": "number",
+      "default": 36
+    },
+    "icon_color": {
+      "name": "Icon Farbe Aus (RGB)",
+      "type": "text",
+      "default": "128,128,128"
+    },
+    "icon_color_on": {
+      "name": "Icon Farbe An (RGB)",
+      "type": "text",
+      "default": "255,193,7"
+    },
+    "value_on": {
+      "name": "Text bei An",
+      "type": "text",
+      "default": "An"
+    },
+    "value_off": {
+      "name": "Text bei Aus",
+      "type": "text",
+      "default": "Aus"
+    },
+    "clickable": {
+      "name": "Klickbar",
+      "type": "bool",
+      "default": "1"
+    },
+    "font_size": {
+      "name": "Text Größe (px)",
+      "type": "number",
+      "default": 16
+    },
+    "bg_color": {
+      "name": "Hintergrund (RGB)",
+      "type": "text",
+      "default": "40,40,40"
+    },
+    "bg_opacity": {
+      "name": "Deckkraft (%)",
+      "type": "number",
+      "default": 90
+    },
+    "border_radius": {
+      "name": "Eckenradius (px)",
+      "type": "number",
+      "default": 12
+    },
+    "layout": {
+      "name": "Layout",
+      "type": "text",
+      "default": "vertical"
+    }
+  }
+}

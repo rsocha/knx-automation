@@ -2,7 +2,7 @@
 
 Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home Systemen.
 
-![Version](https://img.shields.io/badge/version-3.0.9-blue)
+![Version](https://img.shields.io/badge/version-3.0.11-blue)
 
 ## 🚀 Features
 
@@ -18,23 +18,24 @@ Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home S
 - **Drag & Drop** - Widgets frei positionieren und skalieren
 - **Mobile Panel** - Standalone-Ansicht für Smartphones
 - **HA Import** - Home Assistant YAML Import
+- **Widget Upload/Download** - Eigene Templates verwalten
 
 ### Logik-Editor
 - **ReactFlow** basierter visueller Editor
 - Logik-Blöcke per Drag & Drop verbinden
 - KO-Bindungen für Ein-/Ausgänge
-- Seiten zur Organisation von Logik
 
 ### System
 - **Einstellungen** - API-Konfiguration, Visu Backup/Restore
+- **Widget Templates** - Upload/Download von VSE Templates
+- **Mobile Panel** - QR-Code für iPhone/Android
 - **System-Update** - Paket-Upload mit automatischem Neustart
-- **Telegram-Log** - Echtzeit KNX Bus-Monitor
 
 ## 📁 Verzeichnisstruktur
 
 ```
 /opt/knx-automation/
-├── static/                    # Frontend
+├── static/
 │   ├── index.html            # React Dashboard
 │   ├── index-classic.html    # Klassisches Dashboard (Backup)
 │   ├── assets/               # JS/CSS Bundles
@@ -42,50 +43,26 @@ Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home S
 │       ├── switch-card.vse.json
 │       ├── sensor-card.vse.json
 │       ├── gauge-barometer.vse.json
-│       └── strompreis-chart.vse.json
-├── data/                      # Persistente Daten
+│       ├── strompreis-chart.vse.json
+│       └── markdown-card.vse.json
+├── data/
 │   ├── visu_rooms.json       # Visualisierungs-Räume
 │   └── knx.db                # SQLite Datenbank
-├── api/
-│   └── routes.py             # FastAPI Routen
-├── knx/
-│   └── connection.py         # KNX/IP Verbindung
-├── logic/
-│   └── manager.py            # Logik-Block System
-├── main.py                   # FastAPI Server
-└── README.md                 # Diese Datei
+├── api/routes.py
+├── knx/connection.py
+├── logic/manager.py
+└── main.py
 ```
 
 ## 🔧 Installation
 
-### Erstinstallation
-
-```bash
-# 1. Verzeichnis erstellen
-sudo mkdir -p /opt/knx-automation
-cd /opt/knx-automation
-
-# 2. Paket entpacken
-tar -xzf /tmp/knx-automation-v3.0.9.tar.gz --strip-components=1
-
-# 3. Python-Abhängigkeiten (falls nicht vorhanden)
-pip install fastapi uvicorn xknx aiosqlite
-
-# 4. Service einrichten (optional)
-sudo cp knx-automation.service /etc/systemd/system/
-sudo systemctl enable knx-automation
-sudo systemctl start knx-automation
-```
-
-### Update
-
 ```bash
 cd /opt/knx-automation
-tar -xzf /tmp/knx-automation-v3.0.9.tar.gz --strip-components=1
+tar -xzf /tmp/knx-automation-v3.0.10.tar.gz --strip-components=1
 sudo systemctl restart knx-automation
 ```
 
-**Wichtig:** Nach dem Update im Browser `Strg+Shift+R` für Hard-Refresh!
+**Wichtig:** Nach dem Update im Browser `Strg+Shift+R`!
 
 ## 🌐 URLs
 
@@ -93,62 +70,193 @@ sudo systemctl restart knx-automation
 |-----|--------------|
 | `http://SERVER:8000/` | Dashboard |
 | `http://SERVER:8000/visu` | Visualisierung |
-| `http://SERVER:8000/logic` | Logik-Editor |
-| `http://SERVER:8000/log` | Telegram-Log |
+| `http://SERVER:8000/panel` | Mobile Panel |
 | `http://SERVER:8000/settings` | Einstellungen |
-| `http://SERVER:8000/update` | System-Update |
-| `http://SERVER:8000/panel` | Mobile Panel (Standalone) |
-| `http://SERVER:8000/api/v1/docs` | API Dokumentation |
+
+## 📱 Mobile Panel (iPhone/Android)
+
+### Zum Home-Bildschirm hinzufügen:
+
+1. **URL öffnen:** `http://SERVER:8000/panel`
+2. **iPhone Safari:** Teilen-Button (□↑) → "Zum Home-Bildschirm"
+3. **Android Chrome:** Menü (⋮) → "Zum Startbildschirm hinzufügen"
+
+**QR-Code:** In Einstellungen → Mobile Panel → "QR-Code anzeigen"
 
 ## 📱 VSE Widget Templates
 
-### switch-card
-Schalter im Mushroom Card Design mit:
-- Status-Anzeige (Ein/Aus)
-- Klick zum Schalten
-- Anpassbare Icons und Farben
-- Glow-Effekt
+### Verfügbare Widgets
 
-**KO Bindings:**
-- `ko1`: Status-Adresse (lesen)
-- `ko2`: Schalt-Adresse (schreiben)
+| Widget | Beschreibung | KO Bindings |
+|--------|--------------|-------------|
+| switch-card | Schalter mit Status | ko1: Status, ko2: Schaltadresse |
+| sensor-card | Sensor-Anzeige | ko1: Wert |
+| gauge-barometer | Rundes Gauge | ko1: Primärwert, ko2: Sekundär |
+| strompreis-chart | EPEX Preischart | ko1: JSON Array |
+| markdown-card | Titel mit Icon | - (nur Label) |
 
-### sensor-card
-Sensor-Anzeige für Temperatur, Luftfeuchtigkeit, etc.
-- Numerischer Wert mit Einheit
-- Anpassbare Farben und Icons
+### Widget Templates verwalten
 
-**KO Bindings:**
-- `ko1`: Wert-Adresse
+**Download:** Einstellungen → Widget Templates → "Alle Templates"  
+**Upload:** Einstellungen → Widget Templates → "Template hochladen"
 
-### gauge-barometer
-Rundes Gauge für Leistung, Prozent, etc.
-- SVG-basierte Anzeige
-- Zwei Werte möglich (aktuell/gesamt)
+## 🛠️ Eigenes Widget erstellen
 
-**KO Bindings:**
-- `ko1`: Primärer Wert
-- `ko2`: Sekundärer Wert (optional)
+### Option 1: Dynamisches Widget (OHNE Programmierung!)
 
-### strompreis-chart
-24h EPEX Strompreis-Chart mit:
-- Farbcodierte Balken nach Preis
-- "Jetzt" Marker
-- Min/Max Anzeige
-- Korrekte Zeitzonenerkennung für EPEX-Daten
+Einfach ein JSON-Template erstellen und hochladen - das Widget wird automatisch gerendert!
 
-**KO Bindings:**
-- `ko1`: JSON Array mit `[{t: unix_timestamp, p: preis_ct}]`
+```json
+{
+  "id": "temperatur-anzeige",
+  "name": "Temperatur Anzeige",
+  "description": "Zeigt Temperaturwert an",
+  "category": "sensors",
+  "width": 150,
+  "height": 100,
+  "render": "dynamic",
+  "inputs": {
+    "ko1": {
+      "name": "Temperatur",
+      "type": "number"
+    }
+  },
+  "variables": {
+    "icon": { "name": "Icon", "type": "icon", "default": "thermometer" },
+    "icon_size": { "name": "Icon Größe", "type": "number", "default": 28 },
+    "icon_color": { "name": "Icon Farbe", "type": "text", "default": "255,193,7" },
+    "unit": { "name": "Einheit", "type": "text", "default": "°C" },
+    "decimals": { "name": "Dezimalstellen", "type": "number", "default": 1 },
+    "font_size": { "name": "Schriftgröße", "type": "number", "default": 28 },
+    "bg_color": { "name": "Hintergrund", "type": "text", "default": "40,40,40" },
+    "bg_opacity": { "name": "Deckkraft %", "type": "number", "default": 90 },
+    "layout": { "name": "Layout", "type": "text", "default": "vertical" }
+  }
+}
+```
 
-**Variablen:**
-- `var13`: "Daten sind echte UTC" - auf 0 lassen für EPEX-Daten
+**Unterstützte Variablen für dynamische Widgets:**
+
+| Variable | Beschreibung | Default |
+|----------|--------------|---------|
+| `icon` | MDI Icon-Name oder Emoji | - |
+| `icon_size` | Icon-Größe in px | 32 |
+| `icon_color` | Icon-Farbe (RGB) | 255,255,255 |
+| `text_color` | Textfarbe (RGB) | 255,255,255 |
+| `bg_color` | Hintergrundfarbe (RGB) | 40,40,40 |
+| `bg_opacity` | Deckkraft 0-100 | 10 |
+| `border_radius` | Eckenradius px | 12 |
+| `border_color` | Rahmenfarbe (RGB) | - |
+| `border_width` | Rahmenstärke px | 0 |
+| `padding` | Innenabstand px | 12 |
+| `font_size` | Wert-Schriftgröße px | 24 |
+| `label_size` | Label-Schriftgröße px | 12 |
+| `unit` | Einheit (z.B. "°C") | - |
+| `decimals` | Dezimalstellen | 1 |
+| `layout` | vertical/horizontal/icon-left/icon-top | vertical |
+| `clickable` | "1" für Toggle-Funktion | - |
+| `value_on` | Text bei Wert=1 | An |
+| `value_off` | Text bei Wert=0 | Aus |
+
+**render-Typen für automatisches Rendering:**
+- `"render": "dynamic"` - Generischer Renderer
+- `"render": "generic"` - Alias für dynamic
+- `"render": "custom"` - Alias für dynamic
+- Jeder unbekannte render-Typ nutzt ebenfalls den dynamischen Renderer
+
+### Option 2: Custom React-Komponente (für komplexe Widgets)
+
+```json
+{
+  "id": "my-widget",
+  "name": "Mein Widget",
+  "description": "Beschreibung",
+  "category": "custom",
+  "width": 200,
+  "height": 100,
+  "render": "myWidget",
+  "inputs": {
+    "ko1": {
+      "name": "Hauptwert",
+      "type": "number"
+    }
+  },
+  "variables": {
+    "var1": {
+      "name": "Farbe",
+      "type": "text",
+      "default": "255,193,7"
+    }
+  }
+}
+```
+
+### 2. React-Komponente erstellen
+
+Datei: `src/components/visu/VseMyWidget.tsx`
+
+```tsx
+import type { VseWidgetInstance, VseTemplate } from "@/types/vse";
+import { useGroupAddresses } from "@/hooks/useKnx";
+
+interface Props {
+  instance: VseWidgetInstance;
+  template: VseTemplate;
+}
+
+export default function VseMyWidget({ instance, template }: Props) {
+  const { data: addresses } = useGroupAddresses();
+  
+  const vars = {
+    ...Object.fromEntries(
+      Object.entries(template.variables).map(([k, v]) => [k, v.default])
+    ),
+    ...instance.variableValues,
+  };
+  
+  const valueAddr = instance.koBindings["ko1"];
+  const ga = addresses?.find((a) => a.address === valueAddr);
+  const value = ga?.value || "0";
+  
+  return (
+    <div style={{ 
+      width: template.width, 
+      height: template.height,
+      background: "rgba(255,255,255,0.1)",
+      borderRadius: 12,
+      padding: 16,
+    }}>
+      <div style={{ color: "#fff" }}>{instance.label}</div>
+      <div style={{ color: `rgb(${vars.var1})`, fontSize: 24 }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+```
+
+### 3. In VseRenderer registrieren
+
+Datei: `src/components/visu/VseRenderer.tsx`
+
+```tsx
+import VseMyWidget from "./VseMyWidget";
+
+const RENDERERS: Record<string, React.ComponentType<Props>> = {
+  // ... andere Widgets
+  myWidget: VseMyWidget,  // render Name aus JSON
+};
+```
+
+### 4. Template hochladen
+
+1. JSON als `my-widget.vse.json` speichern
+2. Einstellungen → Widget Templates → "Template hochladen"
+3. Seite neu laden (Strg+Shift+R)
 
 ## 🔌 API Endpoints
 
 ### KNX
-- `GET /api/v1/status` - Systemstatus
-- `GET /api/v1/health` - Health Check mit Version
-- `GET /api/v1/group-addresses` - Alle Gruppenadressen
 - `POST /api/v1/knx/send?group_address=X&value=Y` - Telegramm senden
 
 ### Visualisierung
@@ -157,56 +265,28 @@ Rundes Gauge für Leistung, Prozent, etc.
 - `GET /api/v1/visu/export` - Backup herunterladen
 - `POST /api/v1/visu/import` - Backup hochladen
 
-### Logik
-- `GET /api/v1/logic/blocks` - Alle Blöcke
-- `POST /api/v1/logic/blocks` - Block erstellen
-- `DELETE /api/v1/logic/blocks/{id}` - Block löschen
-- `POST /api/v1/logic/blocks/{id}/bind` - KO binden
-
-## 🛠️ Troubleshooting
-
-### Widgets werden nicht angezeigt
-1. Browser-Konsole öffnen (F12)
-2. Nach `[Visu]` Meldungen suchen
-3. Prüfen ob Templates geladen werden
-
-### Schalten funktioniert nicht
-1. Toast-Meldung beachten
-2. Browser-Konsole prüfen: `[Switch]` Logs
-3. Server-Logs: `journalctl -u knx-automation -f`
-
-### Strompreis-Chart zeigt falsche Zeit
-- Variable "Daten sind echte UTC" auf 0 setzen
-- EPEX-Daten verwenden lokale Zeit als UTC-Timestamps
+### VSE Templates
+- `GET /api/v1/vse/templates` - Alle Templates auflisten
+- `POST /api/v1/vse/upload` - Template hochladen
+- `GET /api/v1/vse/download` - Alle Templates als ZIP
 
 ## 📋 Changelog
 
-### v3.0.9 (2025-02-21)
-- README hinzugefügt
-- Code-Cleanup
+### v3.0.10 (2025-02-21)
+- Toolbar-Text wieder sichtbar
+- Widget Template Upload/Download
+- Mobile Panel mit QR-Code
+- Neues Widget: markdown-card
+- README mit Widget-Erstellungsanleitung
 
 ### v3.0.7
-- Strompreis-Chart Zeitzonenfix für EPEX Daten
+- Strompreis-Chart Zeitzonenfix
 
 ### v3.0.5
-- `crypto.randomUUID()` Polyfill für HTTP/ältere Browser
-
-### v3.0.4
-- Switch-Card: Toast-Benachrichtigungen beim Schalten
-- Bessere Fehlerbehandlung
+- crypto.randomUUID() Polyfill
 
 ### v3.0.0
 - Komplettes Redesign mit React/TypeScript
-- shadcn/ui Komponenten
-- ReactFlow Logik-Editor
-- VSE Widget System
-- Server-seitige Visu-Speicherung
-
-## 🔒 Sicherheit
-
-- Dashboard ist **nicht** für öffentliches Internet gedacht
-- Nur im lokalen Netzwerk betreiben
-- Optional: Reverse Proxy mit Auth (nginx + Basic Auth)
 
 ## 📄 Lizenz
 

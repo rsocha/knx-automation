@@ -88,7 +88,7 @@ async def lifespan(app: FastAPI):
     await logic_manager.shutdown()
     await knx_manager.disconnect()
 
-app = FastAPI(title="KNX Automation System", version="3.0.9", lifespan=lifespan)
+app = FastAPI(title="KNX Automation System", version="3.0.12", lifespan=lifespan)
 app.include_router(router, prefix="/api/v1")
 
 dashboard_path = Path(__file__).parent / "static"
@@ -101,6 +101,19 @@ async def root():
     if index_path.exists():
         return FileResponse(index_path)
     return {"message": "KNX Automation API", "docs": "/docs"}
+
+# Catch-all route for SPA - must be AFTER all other routes
+@app.get("/{full_path:path}")
+async def spa_catch_all(full_path: str):
+    """Serve index.html for all SPA routes (React Router)"""
+    # Don't catch API routes or static files
+    if full_path.startswith("api/") or full_path.startswith("static/"):
+        return {"detail": "Not Found"}
+    
+    index_path = Path(__file__).parent / "static" / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    return {"detail": "Not Found"}
 
 if __name__ == "__main__":
     import uvicorn

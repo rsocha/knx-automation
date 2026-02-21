@@ -39,7 +39,7 @@ class PageCreate(BaseModel):
 
 @router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "3.0.9"}
+    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "3.0.12"}
 
 # ============ LICENSE SYSTEM ============
 LICENSE_FILE = Path("data/license.json")
@@ -223,7 +223,7 @@ async def export_visu_config():
     """Export complete visu configuration as downloadable JSON"""
     try:
         export_data = {
-            "version": "3.0.9",
+            "version": "3.0.12",
             "exported_at": datetime.now().isoformat(),
             "rooms": [],
             "config": {}
@@ -272,6 +272,130 @@ async def import_visu_config(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Ungültige JSON-Datei")
     except Exception as e:
         logger.error(f"Error importing visu: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============ VSE TEMPLATE MANAGEMENT ============
+VSE_DIR = Path("static/vse")
+
+@router.get("/vse/templates")
+async def list_vse_templates():
+    """List all available VSE templates"""
+    try:
+        templates = []
+        if VSE_DIR.exists():
+            for f in VSE_DIR.glob("*.vse.json"):
+                try:
+                    with open(f, 'r', encoding='utf-8') as file:
+                        data = json.load(file)
+                        templates.append({
+                            "id": data.get("id", f.stem),
+                            "name": data.get("name", f.stem),
+                            "description": data.get("description", ""),
+                            "category": data.get("category", ""),
+                            "filename": f.name
+                        })
+                except:
+                    pass
+            # Also check for .json files that aren't .vse.json
+            for f in VSE_DIR.glob("*.json"):
+                if not f.name.endswith('.vse.json'):
+                    try:
+                        with open(f, 'r', encoding='utf-8') as file:
+                            data = json.load(file)
+                            if "render" in data:  # It's a VSE template
+                                templates.append({
+                                    "id": data.get("id", f.stem),
+                                    "name": data.get("name", f.stem),
+                                    "description": data.get("description", ""),
+                                    "category": data.get("category", ""),
+                                    "filename": f.name
+                                })
+                    except:
+                        pass
+        return {"templates": templates}
+    except Exception as e:
+        logger.error(f"Error listing VSE templates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/vse/upload")
+async def upload_vse_template(file: UploadFile = File(...)):
+    """Upload a VSE template"""
+    try:
+        content = await file.read()
+        data = json.loads(content.decode('utf-8'))
+        
+        # Validate template structure
+        if "render" not in data:
+            raise HTTPException(status_code=400, detail="Ungültiges Template: 'render' fehlt")
+        if "id" not in data:
+            raise HTTPException(status_code=400, detail="Ungültiges Template: 'id' fehlt")
+        
+        VSE_DIR.mkdir(parents=True, exist_ok=True)
+        
+        # Save with .vse.json extension
+        filename = f"{data['id']}.vse.json"
+        filepath = VSE_DIR / filename
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        
+        logger.info(f"Uploaded VSE template: {filename}")
+        return {"status": "uploaded", "name": data.get("name", data["id"]), "filename": filename}
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Ungültige JSON-Datei")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading VSE template: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/vse/download")
+async def download_vse_templates():
+    """Download all VSE templates as ZIP"""
+    import io
+    import zipfile
+    
+    try:
+        if not VSE_DIR.exists():
+            raise HTTPException(status_code=404, detail="Keine Templates gefunden")
+        
+        # Create ZIP in memory
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for f in VSE_DIR.glob("*.json"):
+                zf.write(f, f.name)
+        
+        zip_buffer.seek(0)
+        
+        return StreamingResponse(
+            zip_buffer,
+            media_type="application/zip",
+            headers={"Content-Disposition": f"attachment; filename=vse-templates-{datetime.now().strftime('%Y%m%d')}.zip"}
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error downloading VSE templates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/vse/{template_id}")
+async def delete_vse_template(template_id: str):
+    """Delete a VSE template"""
+    try:
+        filepath = VSE_DIR / f"{template_id}.vse.json"
+        if not filepath.exists():
+            filepath = VSE_DIR / f"{template_id}.json"
+        
+        if not filepath.exists():
+            raise HTTPException(status_code=404, detail="Template nicht gefunden")
+        
+        filepath.unlink()
+        logger.info(f"Deleted VSE template: {template_id}")
+        return {"status": "deleted", "id": template_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting VSE template: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/visu/config")
@@ -724,7 +848,7 @@ async def get_status():
             "connection_type": knx_manager._connection_type,
             "group_address_count": await db_manager.get_group_address_count(),
             "timestamp": datetime.now().isoformat(),
-            "version": "3.0.9"
+            "version": "3.0.12"
         }
     except Exception as e:
         logger.error(f"Status error: {e}")
