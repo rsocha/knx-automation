@@ -1,0 +1,18 @@
+{
+  "pv_peak_w": 1206.434326171875,
+  "pv_peak_time": "09:59",
+  "grid_import_peak_w": 3283.7,
+  "grid_import_peak_time": "06:47",
+  "grid_export_peak_w": 572.0,
+  "grid_export_peak_time": "08:52",
+  "bat_charge_peak_w": 3.92012619972229,
+  "bat_charge_peak_time": "06:39",
+  "bat_discharge_peak_w": 586.979736328125,
+  "bat_discharge_peak_time": "09:19",
+  "load_peak_w": 3354.949473571777,
+  "load_peak_time": "06:47",
+  "grid_import_midnight": 6339148.0,
+  "grid_export_midnight": 539451.0,
+  "pv_total_midnight": 1581877.451388889,
+  "last_reset_date": "2026-02-16"
+}

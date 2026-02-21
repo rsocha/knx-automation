@@ -1,0 +1,6 @@
+● knx-automation.service - KNX Automation System
+     Loaded: loaded (]8;;file://KNX/etc/systemd/system/knx-automation.service/etc/systemd/system/knx-automation.service]8;;; [0;1;32menabled[0m; preset: [0;1;38;5;185mdisabled[0m)
+     Active: activating (auto-restart) (Result: exit-code) since Sat 2026-02-07 10:27:22 UTC; 4s ago
+    Process: 275 ExecStart=/opt/knx-automation/venv/bin/python main.py [0;1;31m(code=exited, status=1/FAILURE)[0m
+   Main PID: 275 (code=exited, status=1/FAILURE)
+        CPU: 976ms
