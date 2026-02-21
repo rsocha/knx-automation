@@ -1,327 +1,320 @@
-# KNX Automation v2.0.6 - Komplettpaket
+# KNX Automation v3.0.4
 
-## 📦 Inhalt
+Ein modernes Home-Automation Dashboard für KNX-Systeme mit React/TypeScript Frontend.
 
-Dieses Paket enthält:
-- ✅ **KNX Automation v2.0.6** - Vollständiges System
-- ✅ **Sonos Controller v1.2** - Musik-Steuerung
-- ✅ **Button-to-Pulse v1.0** - Puls-Generator für Sonos
+## ✨ Features
+
+### 🖥️ Modernes React Dashboard
+- **Collapsible Sidebar** - Einklappbare Navigation links
+- **Dark Theme** - Augenfreundliches dunkles Design
+- **Responsive** - Optimiert für Desktop und Tablet
+- **Echtzeit-Updates** - Polling für Live-Daten
+
+### 📊 Seiten
+
+| Seite | Beschreibung |
+|-------|--------------|
+| **Adressen** | Gruppenadressen verwalten, IKO-Generator, Live-Werte |
+| **Visualisierung** | VSE-Widgets, Räume, Drag & Drop Editor |
+| **Logik** | ReactFlow Visual Editor für Logik-Blöcke |
+| **Log** | Echtzeit Telegramm-Protokoll |
+| **Einstellungen** | API-Konfiguration, Visu-Backup |
+| **System-Update** | Update hochladen, Neustart, Backup |
+
+### 🔄 Server-Sync für Visualisierung
+- Automatische Speicherung auf dem Server
+- Kein Datenverlust bei Browser-Cache-Leerung
+- Export/Import Funktion für Backups
 
 ---
 
 ## 🚀 Installation
 
-### **Schritt 1: Backup erstellen**
-```bash
-tar -czf knx-automation-backup-$(date +%Y%m%d).tar.gz knx-automation/
-```
+### Erstinstallation
 
-### **Schritt 2: Altes System stoppen**
 ```bash
-sudo systemctl stop knx-automation
-```
+# 1. Paket entpacken
+cd /opt
+tar -xzf knx-automation-v3.0.4.tar.gz
 
-### **Schritt 3: Entpacken**
-```bash
-tar -xzf knx-automation_v2.0.6_complete.tar.gz
-```
-
-### **Schritt 4: Cache löschen (wichtig!)**
-```bash
+# 2. In Verzeichnis wechseln
 cd knx-automation
-find . -type d -name __pycache__ -exec rm -rf {} +
-find . -name "*.pyc" -delete
-```
 
-### **Schritt 5: System starten**
-```bash
+# 3. Python-Abhängigkeiten installieren
+pip3 install -r requirements.txt
+
+# 4. Systemd-Service einrichten
+sudo cp knx-automation.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable knx-automation
 sudo systemctl start knx-automation
 ```
 
-### **Schritt 6: Browser-Cache leeren**
-- Chrome/Edge: `Strg + Shift + Delete`
-- Oder: `Strg + F5` (Hard Reload)
+### Update von bestehender Installation
 
----
-
-## ✅ Was ist neu in v2.0.6?
-
-### **UI-Verbesserungen:**
-- ✅ **Saubere Eingabemaske** - Keine verwirrenden `cond*_*` Felder mehr
-- ✅ **Tab-Navigation** für Bedingungen - Übersichtlicher
-- ✅ **Klare Labels** - "Rahmen-Farbe" statt "Rahmen"
-- ✅ **Performance** - 60-75% schnelleres Rendering
-- ✅ **Verständliche Variablen** - Nur wichtige Felder
-
-### **Neue Bausteine:**
-- ✅ **Button-to-Pulse** - Konvertiert Button-Klicks in Pulse
-
-### **Bugfixes:**
-- ✅ Dashboard-Freeze behoben (v2.0.5 Hotfix)
-- ✅ Bedingungen aus Variablenliste entfernt
-
----
-
-## 🎯 Sonos Controller v1.2 - Wichtig!
-
-### **Problem: Play funktioniert nur einmal**
-
-**Ursache:**
-Das System ruft `execute()` nur bei **Wertänderungen** auf:
-```
-E4 = 1  (von 0) → execute() aufgerufen ✅
-E4 = 1  (von 1) → execute() NICHT aufgerufen ❌
-```
-
-**Das ist System-Design, kein Bug!**
-
-### **Lösung: Button-to-Pulse verwenden**
-
-```
-[Button/Schalter]
-    ↓
-[Button-to-Pulse]  ← Konvertiert 1 in Puls
-    E1
-    A1
-    ↓
-[Sonos Controller E4 Play]
-```
-
-**Wie es funktioniert:**
-1. Button wird auf 1 gesetzt
-2. Button-to-Pulse empfängt die 1
-3. **Automatisch:** Sendet 1 → wartet 100ms → sendet 0
-4. Sonos empfängt den Puls (0→1→0) ✅
-
-**Vorteile:**
-- ✅ Mehrfache Klicks funktionieren
-- ✅ Kein manuelles 0-Setzen nötig
-- ✅ Sauber und wartbar
-
----
-
-## 📋 Sensor Card Einstellungen
-
-### **Neue übersichtliche Struktur:**
-
-```
-Sensor Card Einstellungen
-├─ Wert-Adresse (KO)
-├─ Bezeichnung
-├─ Einheit
-├─ Dezimalstellen, Breite, Höhe
-│
-├─ Icon
-│  ├─ Icon (MDI Name)
-│  ├─ Größe (px)
-│  ├─ Farbe
-│  └─ Deckkraft %
-│
-├─ Text
-│  ├─ Label-Größe (px)
-│  ├─ Label-Farbe
-│  ├─ Label-Deckkraft %
-│  ├─ Wert-Größe (px)
-│  ├─ Wert-Farbe
-│  └─ Wert-Deckkraft %
-│
-├─ Rahmen & Hintergrund
-│  ├─ Hintergrund
-│  ├─ BG Deckkraft
-│  ├─ Rahmenfarbe
-│  ├─ Rahmen Deckkraft
-│  ├─ Rundung (px)
-│  ├─ Rahmenbreite
-│  └─ Glow-Effekt
-│
-└─ Bedingte Formatierung (Tabs!)
-   ├─ [Bedingung 1]  Bedingung 2  Bedingung 3
-   │
-   └─ Bedingung 1:
-      ├─ Aktiviert
-      ├─ Wenn Wert >= 25
-      ├─ Icon Name (MDI): fire
-      ├─ Icon-Farbe: Rot
-      ├─ Icon-Deckkraft %: 100
-      ├─ Label-Farbe: Rot
-      ├─ Wert-Farbe: Rot
-      ├─ Rahmen-Farbe: Rot
-      └─ Glow-Farbe: Rot
-```
-
-**✅ Keine `cond*_*` Felder mehr in der Variablenliste!**
-
----
-
-## 🔧 Troubleshooting
-
-### **Dashboard lädt nicht**
-1. Browser-Cache leeren: `Strg + F5`
-2. Console öffnen (F12) → Fehler prüfen
-3. System neu starten
-
-### **Version wird nicht aktualisiert**
 ```bash
-# Cache löschen:
-cd knx-automation
-find . -type d -name __pycache__ -exec rm -rf {} +
-find . -name "*.pyc" -delete
-sudo systemctl restart knx-automation
+# 1. Service stoppen
+sudo systemctl stop knx-automation
+
+# 2. Backup erstellen
+cp -r /opt/knx-automation /opt/knx-automation-backup
+
+# 3. Neues Paket entpacken (behält data/ Ordner)
+cd /opt/knx-automation
+tar -xzf /tmp/knx-automation-v3.0.4.tar.gz --strip-components=1
+
+# 4. Cache löschen
+find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null
+find . -name "*.pyc" -delete 2>/dev/null
+
+# 5. Service starten
+sudo systemctl start knx-automation
+
+# 6. Browser-Cache leeren: Strg+Shift+R
 ```
-
-### **Sonos Play funktioniert nicht**
-1. **Prüfen:** Verwenden Sie Button-to-Pulse?
-2. **Testen:** Senden Sie einen Puls (1 → 0 → 1)?
-3. **Logs:** `tail -f /var/log/knx-automation.log`
-
-### **Bedingungen werden nicht angezeigt**
-1. Browser-Cache leeren
-2. Modal schließen und neu öffnen
-3. JavaScript-Console prüfen (F12)
 
 ---
 
-## 📁 Dateistruktur
+## 📁 Verzeichnisstruktur
 
 ```
 knx-automation/
+├── main.py              # FastAPI Hauptanwendung
 ├── api/
-│   └── routes.py (v2.0.6)
-├── static/
-│   └── index.html (v2.0.6)
+│   └── routes.py        # API-Endpunkte
+├── knx/
+│   └── connection.py    # KNX/IP Verbindung
 ├── logic/
-│   └── blocks/
-│       ├── sonos_controller.py (v1.2)
-│       └── button_to_pulse.py (v1.0)
+│   ├── manager.py       # Logik-Engine
+│   └── blocks/          # Verfügbare Bausteine
+├── static/
+│   ├── index.html       # React SPA
+│   ├── assets/          # JS/CSS Bundles
+│   └── vse/             # VSE Widget Templates
 ├── data/
-│   └── vse/
-│       └── sensor_card_custom.vse.json
-└── README.md (diese Datei)
+│   ├── addresses.json   # Gruppenadressen
+│   ├── logic_blocks.json
+│   ├── logic_pages.json
+│   └── visu_rooms.json  # Visualisierung (Server-Sync)
+└── README.md
 ```
 
 ---
 
-## 🎯 Schnellstart
+## 🔧 Konfiguration
 
-### **1. Sensor Card verwenden:**
-1. Visu-Seite öffnen
-2. "+ VSE Element" klicken
-3. "Sensor Card" auswählen
-4. Bearbeiten → Einstellungen anpassen
-5. **Bedingungen:** Auf Tabs klicken!
+### KNX Gateway
 
-### **2. Sonos Controller verwenden:**
-1. Logik-Seite öffnen
-2. Sonos Controller hinzufügen
-3. **Wichtig:** Button-to-Pulse vor E4/E5/E6 schalten!
-4. IP-Adresse einstellen
-5. Testen!
+Bearbeite `config.yaml`:
 
-### **3. Button-to-Pulse verwenden:**
-1. Logik-Seite öffnen
-2. Button-to-Pulse hinzufügen
-3. Verbindung:
-   ```
-   [Button] → E1 [Button-to-Pulse] A1 → [Sonos E4]
-   ```
-4. Fertig!
+```yaml
+knx:
+  gateway_ip: "192.168.0.10"
+  gateway_port: 3671
+  local_ip: "192.168.0.87"
+  connection_type: "tunneling"  # oder "routing"
+```
+
+### API-URL im Dashboard
+
+1. Öffne **Einstellungen** (Sidebar)
+2. Trage die API-URL ein: `http://192.168.0.87:8000/api/v1`
+3. Klicke **Speichern**
+
+---
+
+## 🎨 Visualisierung
+
+### VSE Widget Templates
+
+| Template | Beschreibung |
+|----------|--------------|
+| **Switch Card** | Schalter mit Icon, Status, Glow-Effekt |
+| **Sensor Card** | Wertanzeige mit Icon und Label |
+| **Strompreis Chart** | Balkendiagramm für EPEX-Preise |
+| **Gauge Barometer** | Kreisförmige Wertanzeige |
+| **Titel Card** | Überschrift/Header |
+
+### Räume erstellen
+
+1. Gehe zu **Visualisierung**
+2. Klicke **+** im Räume-Panel (links)
+3. Name und Kategorie eingeben
+4. Raum auswählen
+5. **+ Widget** klicken
+6. Template wählen und konfigurieren
+
+### Widget bearbeiten
+
+1. **Edit** Button in Toolbar aktivieren
+2. Widget anklicken → Bearbeiten-Dialog
+3. KO-Adressen und Variablen konfigurieren
+4. Speichern
+
+---
+
+## ⚡ Logik-Editor
+
+### Blöcke hinzufügen
+
+1. Gehe zu **Logik**
+2. **Bausteine** Panel rechts öffnen
+3. Block per Klick hinzufügen
+4. Block auf Canvas positionieren
+
+### Verfügbare Bausteine
+
+| Kategorie | Blöcke |
+|-----------|--------|
+| **Logik** | AND, OR, NOT, XOR |
+| **Vergleich** | Greater, Less, Equal, Threshold |
+| **Math** | Add, Multiply, Clamp, Scale |
+| **Zeit** | Timer, Delay, Scheduler |
+| **Trigger** | Edge Detector, Pulse Generator |
+| **Integration** | Sonos Controller, Fronius |
+
+### KO-Binding
+
+1. Port anklicken (Eingang oder Ausgang)
+2. **KO verbinden** wählen
+3. Gruppenadresse auswählen oder eingeben
+4. Speichern
+
+---
+
+## 📡 API-Endpunkte
+
+### Status
+```
+GET /api/v1/status
+GET /api/v1/health
+```
+
+### Gruppenadressen
+```
+GET    /api/v1/group-addresses
+POST   /api/v1/group-addresses
+PUT    /api/v1/group-addresses/{address}
+DELETE /api/v1/group-addresses/{address}
+```
+
+### KNX Senden
+```
+POST /api/v1/knx/send?group_address=1/2/3&value=1
+```
+
+### Visualisierung
+```
+GET  /api/v1/visu/rooms
+POST /api/v1/visu/rooms
+GET  /api/v1/visu/export
+POST /api/v1/visu/import
+```
+
+### Logik
+```
+GET    /api/v1/logic/blocks
+POST   /api/v1/logic/blocks
+DELETE /api/v1/logic/blocks/{instance_id}
+POST   /api/v1/logic/blocks/{instance_id}/bind
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Dashboard lädt nicht
+
+```bash
+# 1. Service-Status prüfen
+sudo systemctl status knx-automation
+
+# 2. Logs prüfen
+sudo journalctl -u knx-automation -f
+
+# 3. Browser-Cache leeren
+Strg + Shift + R
+```
+
+### KNX-Verbindung fehlgeschlagen
+
+```bash
+# 1. Gateway erreichbar?
+ping 192.168.0.10
+
+# 2. Port offen?
+nc -zv 192.168.0.10 3671
+
+# 3. Logs prüfen
+grep -i "knx\|connection" /var/log/knx-automation.log
+```
+
+### Widgets werden nicht angezeigt
+
+1. Browser-Konsole öffnen (F12)
+2. Nach `[Visu]` Logs suchen
+3. Prüfen ob Templates geladen werden
+4. API-URL in Einstellungen prüfen
+
+### Schalten funktioniert nicht
+
+1. Klicke auf Switch-Card
+2. Prüfe Toast-Nachricht (unten rechts)
+3. Wenn "Senden fehlgeschlagen":
+   - KNX-Verbindung prüfen (Sidebar grün?)
+   - Adresse existiert?
+   - Server-Logs prüfen
 
 ---
 
 ## 📝 Changelog
 
-### **v2.0.6** (15. Feb 2026)
-- ✅ Bedingungen aus Variablenliste entfernt
-- ✅ Nur Widget-Variablen (var1-var13) sichtbar
-- ✅ Bedingungen NUR in Tabs
-- ✅ Button-to-Pulse Baustein hinzugefügt
+### v3.0.4 (21. Feb 2026)
+- ✅ Toast-Benachrichtigungen beim Schalten
+- ✅ Bessere Fehlerbehandlung in Switch-Card
+- ✅ Debug-Logs mit [Switch] Prefix
 
-### **v2.0.5** (15. Feb 2026)
-- ✅ HOTFIX: Dashboard-Freeze behoben
-- ✅ Script-Tag aus HTML entfernt
-- ✅ showCondTab global definiert
+### v3.0.3 (21. Feb 2026)
+- ✅ Komplett überarbeitete Visualization.tsx
+- ✅ Bessere Sync-Logik
+- ✅ Debug-Logs mit [Visu] Prefix
 
-### **v2.0.4** (15. Feb 2026)
-- ✅ Tab-Navigation für Bedingungen
-- ✅ Vollständige Labels
-- ⚠️ Dashboard-Freeze Bug (in v2.0.5 behoben)
+### v3.0.2 (21. Feb 2026)
+- ✅ Template-Pfade korrigiert
+- ✅ VSE-Dateien in /static/vse/
 
-### **v2.0.3** (15. Feb 2026)
-- ✅ Performance-Optimierung
-- ✅ 60-75% schnelleres Rendering
-- ✅ 50% weniger DOM-Elemente
+### v3.0.1 (21. Feb 2026)
+- ✅ Deutlicher Sync-Status Badge
+- ✅ Räume/Widget-Zähler in Toolbar
 
-### **v2.0.2** (15. Feb 2026)
-- ✅ Versionsnummer-Fix
-- ✅ Verständliche Variablennamen
-- ✅ Bedingte Formatierung hinzugefügt
+### v3.0.0 (21. Feb 2026)
+- 🎉 **Komplett neues React/TypeScript Dashboard**
+- ✅ Collapsible Sidebar Navigation
+- ✅ Server-Sync für Visualisierung
+- ✅ ReactFlow Logik-Editor
+- ✅ Einstellungen & System-Update Seiten
+- ✅ Shadcn/ui Komponenten
+- ✅ React Query für State Management
 
----
-
-## 🆘 Support
-
-### **Logs prüfen:**
-```bash
-# Systemd-Journal:
-sudo journalctl -u knx-automation -f
-
-# Log-Datei:
-tail -f /var/log/knx-automation.log
-
-# Nur Fehler:
-grep ERROR /var/log/knx-automation.log
-```
-
-### **System-Status:**
-```bash
-# Status prüfen:
-sudo systemctl status knx-automation
-
-# Neu starten:
-sudo systemctl restart knx-automation
-
-# Stoppen:
-sudo systemctl stop knx-automation
-
-# Starten:
-sudo systemctl start knx-automation
-```
+### v2.x (Feb 2026)
+- Vanilla JavaScript Dashboard
+- VSE Widget System
+- Logik-Blöcke
 
 ---
 
-## ✅ Überprüfung nach Installation
+## 📄 Lizenz
 
-### **1. Version prüfen:**
-- Sidebar (unten links): **v2.0.6** ✅
-- System-Update: **2.0.6** ✅
-
-### **2. Sensor Card testen:**
-1. VSE Element bearbeiten
-2. **Sollte zeigen:** Klare Kategorien (Icon, Text, Rahmen)
-3. **Sollte NICHT zeigen:** `cond*_*` Felder
-4. **Bedingungen:** Nur in Tabs ✅
-
-### **3. Sonos testen:**
-1. Button-to-Pulse hinzufügen
-2. Mit Sonos E4 verbinden
-3. Play mehrfach drücken
-4. **Sollte funktionieren!** ✅
-
-### **4. Performance testen:**
-1. VSE bearbeiten öffnen
-2. **Sollte sofort öffnen** (nicht träge)
-3. Scrollen im Editor
-4. **Sollte flüssig sein** ✅
+MIT License
 
 ---
 
-## 🎉 Viel Erfolg!
+## 🔗 Links
 
-Bei Fragen oder Problemen:
-1. Logs prüfen
-2. README nochmal lesen
-3. Cache löschen und neu starten
+- **Dashboard:** http://192.168.0.87:8000/
+- **API Docs:** http://192.168.0.87:8000/docs
 
-**Version:** 2.0.6  
-**Datum:** 15. Februar 2026  
-**Paket:** Komplett
+---
+
+**Version:** 3.0.4  
+**Datum:** 21. Februar 2026
