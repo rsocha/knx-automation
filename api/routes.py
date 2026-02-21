@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 from pathlib import Path
 
@@ -39,7 +39,153 @@ class PageCreate(BaseModel):
 
 @router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "3.0.7"}
+    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "3.0.9"}
+
+# ============ LICENSE SYSTEM ============
+LICENSE_FILE = Path("data/license.json")
+# Secret for license validation (change this for your deployment!)
+LICENSE_SECRET = "KNX-AUTO-2024-SECRET"
+
+def generate_license_key(email: str, valid_days: int = 365) -> dict:
+    """Generate a license key for an email"""
+    import hashlib
+    import base64
+    
+    created = datetime.now().isoformat()
+    expires = (datetime.now() + timedelta(days=valid_days)).isoformat()
+    
+    # Create signature
+    data = f"{email}:{created}:{expires}:{LICENSE_SECRET}"
+    signature = hashlib.sha256(data.encode()).hexdigest()[:16].upper()
+    
+    # Format: KNX-XXXX-XXXX-XXXX
+    key = f"KNX-{signature[:4]}-{signature[4:8]}-{signature[8:12]}"
+    
+    return {
+        "key": key,
+        "email": email,
+        "created": created,
+        "expires": expires,
+        "signature": signature
+    }
+
+def validate_license_key(key: str, email: str) -> tuple[bool, str]:
+    """Validate a license key"""
+    import hashlib
+    
+    if not key or not email:
+        return False, "Lizenzschlüssel und E-Mail erforderlich"
+    
+    # Check format
+    if not key.startswith("KNX-") or len(key) != 17:
+        return False, "Ungültiges Schlüsselformat"
+    
+    # Load stored license
+    try:
+        if LICENSE_FILE.exists():
+            with open(LICENSE_FILE, 'r') as f:
+                stored = json.load(f)
+                
+            if stored.get("key") == key and stored.get("email") == email:
+                # Check expiry
+                expires = datetime.fromisoformat(stored["expires"])
+                if datetime.now() > expires:
+                    return False, "Lizenz abgelaufen"
+                return True, "Lizenz gültig"
+    except Exception as e:
+        logger.error(f"License validation error: {e}")
+    
+    return False, "Lizenzschlüssel nicht gefunden oder ungültig"
+
+@router.get("/license/status")
+async def get_license_status():
+    """Get current license status"""
+    try:
+        if LICENSE_FILE.exists():
+            with open(LICENSE_FILE, 'r') as f:
+                stored = json.load(f)
+            
+            expires = datetime.fromisoformat(stored["expires"])
+            is_valid = datetime.now() < expires
+            days_left = (expires - datetime.now()).days if is_valid else 0
+            
+            return {
+                "licensed": is_valid,
+                "email": stored.get("email", ""),
+                "expires": stored.get("expires"),
+                "days_left": days_left,
+                "key_preview": stored.get("key", "")[:8] + "..." if stored.get("key") else None
+            }
+        return {"licensed": False, "email": None, "expires": None, "days_left": 0}
+    except Exception as e:
+        logger.error(f"License status error: {e}")
+        return {"licensed": False, "error": str(e)}
+
+@router.post("/license/activate")
+async def activate_license(key: str = Query(...), email: str = Query(...)):
+    """Activate a license key"""
+    try:
+        import hashlib
+        
+        # Validate key format
+        if not key.startswith("KNX-") or len(key) != 17:
+            raise HTTPException(status_code=400, detail="Ungültiges Schlüsselformat (KNX-XXXX-XXXX-XXXX)")
+        
+        # Extract signature from key
+        key_sig = key.replace("KNX-", "").replace("-", "").upper()
+        
+        # Try to validate with different expiry dates (allow keys created for this email)
+        valid = False
+        for days_offset in range(0, 400):  # Check last 400 days of possible creation dates
+            for validity in [365, 730, 1095]:  # 1, 2, 3 year licenses
+                test_date = datetime.now() - timedelta(days=days_offset)
+                test_expires = test_date + timedelta(days=validity)
+                
+                data = f"{email}:{test_date.isoformat()}:{test_expires.isoformat()}:{LICENSE_SECRET}"
+                expected_sig = hashlib.sha256(data.encode()).hexdigest()[:12].upper()
+                
+                if key_sig == expected_sig:
+                    valid = True
+                    # Save license
+                    LICENSE_FILE.parent.mkdir(parents=True, exist_ok=True)
+                    license_data = {
+                        "key": key,
+                        "email": email,
+                        "created": test_date.isoformat(),
+                        "expires": test_expires.isoformat(),
+                        "activated": datetime.now().isoformat()
+                    }
+                    with open(LICENSE_FILE, 'w') as f:
+                        json.dump(license_data, f, indent=2)
+                    
+                    days_left = (test_expires - datetime.now()).days
+                    logger.info(f"License activated for {email}, expires in {days_left} days")
+                    return {
+                        "status": "activated",
+                        "email": email,
+                        "expires": test_expires.isoformat(),
+                        "days_left": days_left
+                    }
+        
+        if not valid:
+            raise HTTPException(status_code=400, detail="Lizenzschlüssel ungültig für diese E-Mail-Adresse")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"License activation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/license/generate")
+async def generate_license(email: str = Query(...), days: int = Query(default=365)):
+    """Generate a new license key (admin only - protect this endpoint!)"""
+    try:
+        license_data = generate_license_key(email, days)
+        logger.info(f"Generated license for {email}: {license_data['key']}")
+        return license_data
+    except Exception as e:
+        logger.error(f"License generation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ============ VISU CONFIG ============
 VISU_CONFIG_FILE = Path("data/visu_config.json")
@@ -77,7 +223,7 @@ async def export_visu_config():
     """Export complete visu configuration as downloadable JSON"""
     try:
         export_data = {
-            "version": "3.0.7",
+            "version": "3.0.9",
             "exported_at": datetime.now().isoformat(),
             "rooms": [],
             "config": {}
@@ -578,7 +724,7 @@ async def get_status():
             "connection_type": knx_manager._connection_type,
             "group_address_count": await db_manager.get_group_address_count(),
             "timestamp": datetime.now().isoformat(),
-            "version": "3.0.7"
+            "version": "3.0.9"
         }
     except Exception as e:
         logger.error(f"Status error: {e}")
