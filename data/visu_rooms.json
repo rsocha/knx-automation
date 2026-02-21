@@ -1,0 +1,73 @@
+[
+  {
+    "id": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
+    "name": "Test",
+    "category": "Wohnbereich",
+    "widgets": [
+      {
+        "id": "869af89c-0c5c-4062-a2c9-211f1bf87cd1",
+        "templateId": "switch-card",
+        "label": "Garage",
+        "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
+        "koBindings": {
+          "ko1": "1/4/6",
+          "ko2": "1/1/6"
+        },
+        "variableValues": {
+          "var1": "Lightbulb",
+          "var2": "Power",
+          "var12": 17
+        },
+        "x": 4,
+        "y": 24,
+        "widthOverride": 154,
+        "heightOverride": 132
+      },
+      {
+        "id": "13cc9aa2-31bd-424d-82f0-6e2f7423df16",
+        "templateId": "strompreis-chart",
+        "label": "Epex Strom",
+        "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
+        "koBindings": {
+          "ko1": "INT/Epex/A17"
+        },
+        "variableValues": {},
+        "x": 8,
+        "y": 229,
+        "widthOverride": 376,
+        "heightOverride": 286
+      },
+      {
+        "id": "a5e952ec-5c6b-4bfe-a4bd-1628ca2c2805",
+        "templateId": "gauge-barometer",
+        "label": "PV Leistung",
+        "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
+        "koBindings": {
+          "ko1": "IKO:FRONIUS/A4",
+          "ko2": "IKO:FRONIUS/A16"
+        },
+        "variableValues": {
+          "unit": "W"
+        },
+        "x": 9,
+        "y": 531
+      },
+      {
+        "id": "d1b32d5a-aeaf-412f-aab3-810e8303c0a7",
+        "templateId": "sensor-card",
+        "label": "Aussen Temp.",
+        "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
+        "koBindings": {
+          "ko1": "IKO/ECOwitt/A1"
+        },
+        "variableValues": {
+          "var2": "Aussen Temp.",
+          "var4": 26,
+          "var12": 25
+        },
+        "x": 175,
+        "y": 28
+      }
+    ]
+  }
+]

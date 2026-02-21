@@ -1,0 +1,45 @@
+{
+  "id": "switch-card",
+  "name": "Light Switch Card",
+  "description": "Schaltkarte für Beleuchtung/Steckdosen im Mushroom Card Design",
+  "category": "switches",
+  "author": "KNX Automation",
+  "version": "1.1",
+  "width": 160,
+  "height": 130,
+  "render": "switchCard",
+  "inputs": {
+    "ko1": {
+      "name": "Status (0/1)",
+      "type": "bool",
+      "description": "Aktueller Schaltzustand"
+    },
+    "ko2": {
+      "name": "Schalt-Adresse",
+      "type": "bool", 
+      "description": "Adresse zum Schalten (Toggle)"
+    }
+  },
+  "variables": {
+    "var1": { "name": "Haupticon (MDI)", "type": "icon", "default": "lightbulb" },
+    "var2": { "name": "Badge-Icon (MDI)", "type": "icon", "default": "power" },
+    "var3": { "name": "Icon/Farbe bei 1 (RGB)", "type": "text", "default": "255,193,7" },
+    "var4": { "name": "Icon/Farbe bei 0 (RGB)", "type": "text", "default": "158,158,158" },
+    "var5": { "name": "Text bei 1", "type": "text", "default": "An" },
+    "var6": { "name": "Text bei 0", "type": "text", "default": "Aus" },
+    "var7": { "name": "Icon-Größe (px)", "type": "number", "default": 40 },
+    "var8": { "name": "Badge-Größe (px)", "type": "number", "default": 18 },
+    "var9": { "name": "Border-Radius (px)", "type": "number", "default": 12 },
+    "var10": { "name": "Glow-Effekt", "type": "bool", "default": "1" },
+    "var11": { "name": "Hover-Effekt", "type": "bool", "default": "1" },
+    "var12": { "name": "Badge Position (%)", "type": "number", "default": 50 },
+    "var13": { "name": "Badge bei 1 (RGB)", "type": "text", "default": "76,175,80" },
+    "var14": { "name": "Badge bei 0 (RGB)", "type": "text", "default": "244,67,54" },
+    "var15": { "name": "Status-Icon bei 1", "type": "icon", "default": "-" },
+    "var16": { "name": "Status-Icon bei 0", "type": "icon", "default": "-" },
+    "var17": { "name": "Rahmenfarbe bei 1 (RGB)", "type": "text", "default": "255,193,7" },
+    "var18": { "name": "Rahmenfarbe bei 0 (RGB)", "type": "text", "default": "158,158,158" },
+    "var19": { "name": "Rahmenstärke (px)", "type": "number", "default": 1.5 },
+    "var20": { "name": "Rahmen-Deckkraft (%)", "type": "number", "default": 45 }
+  }
+}

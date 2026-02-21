@@ -1,0 +1,28 @@
+{
+  "id": "sensor-card",
+  "name": "Sensor Card",
+  "description": "Kompakte Sensorkarte mit MDI-Icon, Label und Wert",
+  "category": "Sensoren",
+  "author": "VSE",
+  "version": "1.0",
+  "width": 200,
+  "height": 50,
+  "render": "sensorCard",
+  "inputs": {
+    "ko1": { "name": "Sensorwert", "type": "number" }
+  },
+  "variables": {
+    "var1": { "name": "Icon (MDI)", "type": "icon", "default": "thermometer" },
+    "var2": { "name": "Titel", "type": "text", "default": "Sensor" },
+    "var3": { "name": "Dezimalstellen", "type": "number", "default": 1 },
+    "var4": { "name": "Icon-Größe (px)", "type": "number", "default": 24 },
+    "var5": { "name": "Label-Größe (em)", "type": "text", "default": "0.85" },
+    "var7": { "name": "Label-Deckkraft", "type": "text", "default": "0.7" },
+    "var8": { "name": "Wert-Größe (em)", "type": "text", "default": "1.1" },
+    "var10": { "name": "Wert-Deckkraft", "type": "text", "default": "0.9" },
+    "var11": { "name": "Icon-Farbe (R,G,B)", "type": "color", "default": "100,181,246" },
+    "var12": { "name": "Border-Radius (px)", "type": "number", "default": 16 },
+    "var13": { "name": "Rahmen-Deckkraft", "type": "text", "default": "0.3" },
+    "unit": { "name": "Einheit", "type": "text", "default": "°C" }
+  }
+}
