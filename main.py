@@ -88,7 +88,7 @@ async def lifespan(app: FastAPI):
     await logic_manager.shutdown()
     await knx_manager.disconnect()
 
-app = FastAPI(title="KNX Automation System", version="3.0.5", lifespan=lifespan)
+app = FastAPI(title="KNX Automation System", version="3.0.7", lifespan=lifespan)
 app.include_router(router, prefix="/api/v1")
 
 dashboard_path = Path(__file__).parent / "static"

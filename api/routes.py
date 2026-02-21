@@ -39,7 +39,7 @@ class PageCreate(BaseModel):
 
 @router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "3.0.5"}
+    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "3.0.7"}
 
 # ============ VISU CONFIG ============
 VISU_CONFIG_FILE = Path("data/visu_config.json")
@@ -77,7 +77,7 @@ async def export_visu_config():
     """Export complete visu configuration as downloadable JSON"""
     try:
         export_data = {
-            "version": "3.0.5",
+            "version": "3.0.7",
             "exported_at": datetime.now().isoformat(),
             "rooms": [],
             "config": {}
@@ -578,7 +578,7 @@ async def get_status():
             "connection_type": knx_manager._connection_type,
             "group_address_count": await db_manager.get_group_address_count(),
             "timestamp": datetime.now().isoformat(),
-            "version": "3.0.5"
+            "version": "3.0.7"
         }
     except Exception as e:
         logger.error(f"Status error: {e}")

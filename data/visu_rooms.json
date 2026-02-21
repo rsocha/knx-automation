@@ -31,7 +31,9 @@
         "koBindings": {
           "ko1": "INT/Epex/A17"
         },
-        "variableValues": {},
+        "variableValues": {
+          "var13": 0
+        },
         "x": 8,
         "y": 229,
         "widthOverride": 376,
