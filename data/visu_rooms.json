@@ -18,10 +18,10 @@
           "var2": "Power",
           "var12": 17
         },
-        "x": 4,
-        "y": 24,
-        "widthOverride": 154,
-        "heightOverride": 132
+        "x": 140,
+        "y": 95,
+        "widthOverride": 117,
+        "heightOverride": 102
       },
       {
         "id": "13cc9aa2-31bd-424d-82f0-6e2f7423df16",
@@ -34,8 +34,8 @@
         "variableValues": {},
         "x": 8,
         "y": 229,
-        "widthOverride": 376,
-        "heightOverride": 286
+        "widthOverride": 379,
+        "heightOverride": 284
       },
       {
         "id": "a5e952ec-5c6b-4bfe-a4bd-1628ca2c2805",
@@ -49,6 +49,7 @@
         "variableValues": {
           "var1": 0,
           "var2": 8000,
+          "var15": "PV-Leistung",
           "unit": "W"
         },
         "x": 9,
@@ -65,11 +66,102 @@
         "variableValues": {
           "var2": "Aussen Temp.",
           "var4": 26,
+          "var5": "0.6",
+          "var8": "0.7",
           "var12": 25
         },
-        "x": 175,
-        "y": 28
+        "x": 10,
+        "y": 18,
+        "widthOverride": 131,
+        "heightOverride": 40
+      },
+      {
+        "id": "ad23edb5-2345-4825-b10d-08e61a86cc4f",
+        "templateId": "sensor-card",
+        "label": "Innentemperatur",
+        "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
+        "koBindings": {
+          "ko1": "IKO:20032_NetatmoHomecoach_2_110346:A5"
+        },
+        "variableValues": {
+          "var2": "Innentemp.",
+          "var5": "0.6",
+          "var8": "0.8",
+          "var11": "58,248,96",
+          "var12": 20
+        },
+        "x": 148,
+        "y": 19,
+        "widthOverride": 125,
+        "heightOverride": 40
+      },
+      {
+        "id": "70408dfb-3943-46a3-91f5-dfb9b1c48e0d",
+        "templateId": "sensor-card",
+        "label": "Batterie",
+        "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
+        "koBindings": {
+          "ko1": "IKO:20030_FroniusGen24_4_111048:A8"
+        },
+        "variableValues": {
+          "var1": "battery-charging-30",
+          "var2": "Batterie",
+          "var5": "0.6",
+          "var8": "0.8",
+          "var11": "244,37,37",
+          "var12": 20,
+          "unit": "%"
+        },
+        "x": 276,
+        "y": 19,
+        "widthOverride": 120,
+        "heightOverride": 40
       }
-    ]
+    ],
+    "background": {
+      "type": "color",
+      "color": "0,0,0",
+      "opacity": 100
+    }
+  },
+  {
+    "id": "8a159770-37ae-4bf8-93a8-c02f3f6794c2",
+    "name": "Musik",
+    "category": "Wohnbereich",
+    "widgets": [
+      {
+        "id": "2168d50f-a3be-4668-a921-9a1a60f4484e",
+        "templateId": "media-player",
+        "label": "Sonos",
+        "roomId": "8a159770-37ae-4bf8-93a8-c02f3f6794c2",
+        "koBindings": {
+          "ko1": "IKO:200352_SonosController_5_062328:A4",
+          "ko2": "IKO:200352_SonosController_5_062328:A5",
+          "ko3": "IKO:200352_SonosController_5_062328:A6",
+          "ko13": "IKO:200352_SonosController_5_062328:A3",
+          "ko4": "IKO:200352_SonosController_5_062328:A7",
+          "ko6": "IKO:200352_SonosController_5_062328:A15",
+          "ko9": "IKO:200352_SonosController_5_062328:E4",
+          "ko14": "IKO:200352_SonosController_5_062328:E5",
+          "ko12": "IKO:200352_SonosController_5_062328:E9"
+        },
+        "variableValues": {
+          "var4": "227,45,251",
+          "var5": "0,0,0",
+          "var6": 6,
+          "var7": "253,220,53",
+          "var8": 45
+        },
+        "x": 17,
+        "y": 35,
+        "widthOverride": 368,
+        "heightOverride": 486
+      }
+    ],
+    "background": {
+      "type": "color",
+      "color": "0,0,0",
+      "opacity": 100
+    }
   }
 ]

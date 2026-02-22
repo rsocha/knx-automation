@@ -39,7 +39,7 @@ class PageCreate(BaseModel):
 
 @router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "3.0.22"}
+    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "3.0.23"}
 
 # ============ LICENSE SYSTEM ============
 LICENSE_FILE = Path("data/license.json")
@@ -223,7 +223,7 @@ async def export_visu_config():
     """Export complete visu configuration as downloadable JSON"""
     try:
         export_data = {
-            "version": "3.0.22",
+            "version": "3.0.23",
             "exported_at": datetime.now().isoformat(),
             "rooms": [],
             "config": {}
@@ -848,7 +848,7 @@ async def get_status():
             "connection_type": knx_manager._connection_type,
             "group_address_count": await db_manager.get_group_address_count(),
             "timestamp": datetime.now().isoformat(),
-            "version": "3.0.22"
+            "version": "3.0.23"
         }
     except Exception as e:
         logger.error(f"Status error: {e}")
@@ -1477,7 +1477,7 @@ async def export_logic_config():
     """Export all logic blocks and pages as downloadable JSON"""
     try:
         export_data = {
-            "version": "3.0.22",
+            "version": "3.0.23",
             "exported_at": datetime.now().isoformat(),
             "blocks": logic_manager.get_all_blocks(),
             "pages": list(logic_manager._pages.values()) if hasattr(logic_manager, '_pages') else []

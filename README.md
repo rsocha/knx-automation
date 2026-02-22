@@ -2,7 +2,7 @@
 
 Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home Systemen.
 
-![Version](https://img.shields.io/badge/version-3.0.22-blue)
+![Version](https://img.shields.io/badge/version-3.0.23-blue)
 
 ## 🚀 Features
 
@@ -244,12 +244,16 @@ Siehe `dashboard-src/README.md` für Details.
 
 ## 📋 Changelog
 
+### v3.0.23 (2026-02-22)
+- **Neu:** KO-Adressenauswahl mit Suche beim Hinzufügen/Bearbeiten von Widgets
+- **Fix:** Widget-Dialog passt sich jetzt an Bildschirmgröße an (max 85% Höhe)
+- **Fix:** Alle Dialoge sind scrollbar, Speichern-Button immer sichtbar
+
 ### v3.0.22 (2026-02-22)
 - **Neu:** Media Player mit separaten Play/Pause KOs (ko9=Play, ko14=Pause)
 - **Neu:** Eigene Kategorien hinzufügen und verwalten
 - **Neu:** Raum-Einstellungen bearbeiten (Hintergrundfarbe, Farbverlauf, Bilder)
 - **Neu:** Raum-Icons (Emoji oder MDI)
-- **Fix:** Widget-Einstellungen werden korrekt gespeichert (min/max bei Gauge)
 - Vorbereitung für Multi-Device Visualisierungen
 
 ### v3.0.21 (2026-02-22)
