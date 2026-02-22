@@ -26,8 +26,9 @@ export default function VseGaugeBarometer({ instance, template }: Props) {
     ...instance.variableValues,
   };
 
-  const min = Number(vars.var1) || 960;
-  const max = Number(vars.var2) || 1060;
+  // Use nullish coalescing for min/max to allow 0 as valid value
+  const min = vars.var1 !== undefined && vars.var1 !== "" ? Number(vars.var1) : 960;
+  const max = vars.var2 !== undefined && vars.var2 !== "" ? Number(vars.var2) : 1060;
   const ringType: string = vars.var3 || "open";
   const pointerColor: string = vars.var4 || "255,193,7";
   const decimals = Number(vars.var5) || 1;

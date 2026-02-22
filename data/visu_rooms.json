@@ -47,6 +47,9 @@
           "ko2": "IKO:FRONIUS/A16"
         },
         "variableValues": {
+          "var1": 1,
+          "var2": 8000,
+          "var15": "PV-Leistung",
           "unit": "W"
         },
         "x": 9,

@@ -2,7 +2,7 @@
 
 Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home Systemen.
 
-![Version](https://img.shields.io/badge/version-3.0.15-blue)
+![Version](https://img.shields.io/badge/version-3.0.19-blue)
 
 ## 🚀 Features
 
@@ -17,13 +17,14 @@ Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home S
 - **Server-Sync** - Automatische Speicherung auf dem Server
 - **Drag & Drop** - Widgets frei positionieren und skalieren
 - **Mobile Panel** - Standalone-Ansicht für Smartphones
-- **HA Import** - Home Assistant YAML Import
+- **Home Assistant Import** - YAML-Karten importieren
 - **Widget Upload/Download** - Eigene Templates verwalten
 
 ### Logik-Editor
 - **ReactFlow** basierter visueller Editor
 - Logik-Blöcke per Drag & Drop verbinden
 - KO-Bindungen für Ein-/Ausgänge
+- Export/Import von Logik-Konfigurationen
 
 ### System
 - **Einstellungen** - API-Konfiguration, Visu Backup/Restore
@@ -48,6 +49,7 @@ Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home S
 │   └── README.md             # Entwickler-Doku
 ├── data/
 │   ├── visu_rooms.json       # Visualisierungs-Räume
+│   ├── logic_config.json     # Logik-Blöcke
 │   └── knx.db                # SQLite Datenbank
 ├── api/routes.py              # Backend API
 ├── main.py                    # FastAPI Server
@@ -57,10 +59,29 @@ Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home S
 
 ## 🔧 Installation
 
+### Erstinstallation
+
+```bash
+# 1. Verzeichnis erstellen
+sudo mkdir -p /opt/knx-automation
+cd /opt/knx-automation
+
+# 2. Paket entpacken
+tar -xzf /tmp/knx-automation-v3.0.19.tar.gz --strip-components=1
+
+# 3. Installer ausführen (installiert Python-Pakete + Service)
+sudo ./install.sh
+
+# 4. Service starten
+systemctl start knx-automation
+```
+
+### Update
+
 ```bash
 cd /opt/knx-automation
-tar -xzf /tmp/knx-automation-v3.0.10.tar.gz --strip-components=1
-sudo systemctl restart knx-automation
+tar -xzf /tmp/knx-automation-v3.0.19.tar.gz --strip-components=1
+systemctl restart knx-automation
 ```
 
 **Wichtig:** Nach dem Update im Browser `Strg+Shift+R`!
@@ -69,10 +90,13 @@ sudo systemctl restart knx-automation
 
 | URL | Beschreibung |
 |-----|--------------|
-| `http://SERVER:8000/` | Dashboard |
-| `http://SERVER:8000/visu` | Visualisierung |
-| `http://SERVER:8000/panel` | Mobile Panel |
+| `http://SERVER:8000/` | Dashboard (Adressen) |
+| `http://SERVER:8000/visu` | Visualisierung (Editor) |
+| `http://SERVER:8000/panel` | Mobile Panel (Vollbild) |
+| `http://SERVER:8000/logic` | Logik-Editor |
 | `http://SERVER:8000/settings` | Einstellungen |
+| `http://SERVER:8000/update` | System-Update |
+| `http://SERVER:8000/api/v1/docs` | API-Dokumentation |
 
 ## 📱 Mobile Panel (iPhone/Android)
 
@@ -82,7 +106,41 @@ sudo systemctl restart knx-automation
 2. **iPhone Safari:** Teilen-Button (□↑) → "Zum Home-Bildschirm"
 3. **Android Chrome:** Menü (⋮) → "Zum Startbildschirm hinzufügen"
 
-**QR-Code:** In Einstellungen → Mobile Panel → "QR-Code anzeigen"
+**QR-Code:** Einstellungen → Mobile Panel → "QR-Code anzeigen"
+
+## 🏠 Home Assistant YAML Import
+
+Du kannst Home Assistant Mushroom-Card YAML direkt importieren und in VSE-Widgets umwandeln.
+
+### So funktioniert's:
+
+1. **Visu öffnen:** `http://SERVER:8000/visu`
+2. **Import klicken** (in der Toolbar)
+3. **YAML einfügen** oder Datei hochladen
+4. **"YAML analysieren"** klicken
+5. **KO-Adressen zuweisen** für jede erkannte Karte
+6. **Importieren**
+
+### Unterstützte HA-Karten:
+
+- `custom:mushroom-template-card` → switch-card
+- `custom:mushroom-light-card` → switch-card
+- `custom:mushroom-entity-card` → switch-card
+- `custom:mushroom-title-card` → title-card
+- Andere Karten werden als switch-card importiert
+
+### Beispiel YAML:
+
+```yaml
+type: custom:mushroom-template-card
+entity: light.wohnzimmer
+primary: Wohnzimmer Licht
+icon: mdi:lightbulb
+tap_action:
+  action: toggle
+```
+
+Nach dem Import kannst du die KO-Adressen (Status + Schalten) zuweisen.
 
 ## 📱 VSE Widget Templates
 
@@ -90,11 +148,14 @@ sudo systemctl restart knx-automation
 
 | Widget | Beschreibung | KO Bindings |
 |--------|--------------|-------------|
-| switch-card | Schalter mit Status | ko1: Status, ko2: Schaltadresse |
+| switch-card | Schalter (Mushroom-Style) | ko1: Status, ko2: Schaltadresse |
 | sensor-card | Sensor-Anzeige | ko1: Wert |
-| gauge-barometer | Rundes Gauge | ko1: Primärwert, ko2: Sekundär |
-| strompreis-chart | EPEX Preischart | ko1: JSON Array |
-| markdown-card | Titel mit Icon | - (nur Label) |
+| gauge-barometer | Rundes Gauge/Barometer | ko1: Primärwert, ko2: Sekundär (weißer Zeiger) |
+| strompreis-chart | 24h EPEX Preischart | ko1: JSON Array |
+| markdown-card | Titel mit Icon/Emoji | - (nur Label) |
+| compass-speedometer | Kompass mit Geschwindigkeit | ko1: Speed, ko2: Richtung blau, ko3: Richtung grau |
+| simple-value | Dynamische Wertanzeige | ko1: Wert |
+| simple-toggle | Dynamischer Schalter | ko1: Status, ko2: Schalten |
 
 ### Widget Templates verwalten
 
@@ -105,7 +166,7 @@ sudo systemctl restart knx-automation
 
 ### Option 1: Dynamisches Widget (OHNE Programmierung!)
 
-Einfach ein JSON-Template erstellen und hochladen - das Widget wird automatisch gerendert!
+Einfach ein JSON-Template erstellen und hochladen - wird automatisch gerendert!
 
 ```json
 {
@@ -117,21 +178,12 @@ Einfach ein JSON-Template erstellen und hochladen - das Widget wird automatisch 
   "height": 100,
   "render": "dynamic",
   "inputs": {
-    "ko1": {
-      "name": "Temperatur",
-      "type": "number"
-    }
+    "ko1": { "name": "Temperatur", "type": "number" }
   },
   "variables": {
     "icon": { "name": "Icon", "type": "icon", "default": "thermometer" },
-    "icon_size": { "name": "Icon Größe", "type": "number", "default": 28 },
-    "icon_color": { "name": "Icon Farbe", "type": "text", "default": "255,193,7" },
     "unit": { "name": "Einheit", "type": "text", "default": "°C" },
-    "decimals": { "name": "Dezimalstellen", "type": "number", "default": 1 },
-    "font_size": { "name": "Schriftgröße", "type": "number", "default": 28 },
-    "bg_color": { "name": "Hintergrund", "type": "text", "default": "40,40,40" },
-    "bg_opacity": { "name": "Deckkraft %", "type": "number", "default": 90 },
-    "layout": { "name": "Layout", "type": "text", "default": "vertical" }
+    "decimals": { "name": "Dezimalstellen", "type": "number", "default": 1 }
   }
 }
 ```
@@ -143,125 +195,33 @@ Einfach ein JSON-Template erstellen und hochladen - das Widget wird automatisch 
 | `icon` | MDI Icon-Name oder Emoji | - |
 | `icon_size` | Icon-Größe in px | 32 |
 | `icon_color` | Icon-Farbe (RGB) | 255,255,255 |
-| `text_color` | Textfarbe (RGB) | 255,255,255 |
-| `bg_color` | Hintergrundfarbe (RGB) | 40,40,40 |
-| `bg_opacity` | Deckkraft 0-100 | 10 |
-| `border_radius` | Eckenradius px | 12 |
-| `border_color` | Rahmenfarbe (RGB) | - |
-| `border_width` | Rahmenstärke px | 0 |
-| `padding` | Innenabstand px | 12 |
-| `font_size` | Wert-Schriftgröße px | 24 |
-| `label_size` | Label-Schriftgröße px | 12 |
 | `unit` | Einheit (z.B. "°C") | - |
 | `decimals` | Dezimalstellen | 1 |
-| `layout` | vertical/horizontal/icon-left/icon-top | vertical |
-| `clickable` | "1" für Toggle-Funktion | - |
-| `value_on` | Text bei Wert=1 | An |
-| `value_off` | Text bei Wert=0 | Aus |
+| `font_size` | Wert-Schriftgröße | 24 |
+| `bg_color` | Hintergrund (RGB) | 40,40,40 |
+| `bg_opacity` | Deckkraft 0-100 | 10 |
+| `layout` | vertical/horizontal/icon-top | vertical |
+| `clickable` | "1" für Toggle | - |
+| `value_on` / `value_off` | Text für An/Aus | An/Aus |
 
-**render-Typen für automatisches Rendering:**
-- `"render": "dynamic"` - Generischer Renderer
-- `"render": "generic"` - Alias für dynamic
-- `"render": "custom"` - Alias für dynamic
-- Jeder unbekannte render-Typ nutzt ebenfalls den dynamischen Renderer
+**render-Typen:** `"dynamic"`, `"generic"`, `"custom"` oder jeder unbekannte Typ.
 
-### Option 2: Custom React-Komponente (für komplexe Widgets)
+### Option 2: Custom React-Komponente
 
-> ⚠️ **Hinweis:** Dieser Abschnitt ist nur für fortgeschrittene Entwickler!  
-> Die Datei `VseMyWidget.tsx` ist nur ein **Beispiel** und nicht im Paket enthalten.  
-> Für die meisten Widgets reicht Option 1 (dynamische Widgets) völlig aus!
+Für komplexe Widgets (wie gauge-barometer, strompreis-chart):
 
-```json
-{
-  "id": "my-widget",
-  "name": "Mein Widget",
-  "description": "Beschreibung",
-  "category": "custom",
-  "width": 200,
-  "height": 100,
-  "render": "myWidget",
-  "inputs": {
-    "ko1": {
-      "name": "Hauptwert",
-      "type": "number"
-    }
-  },
-  "variables": {
-    "var1": {
-      "name": "Farbe",
-      "type": "text",
-      "default": "255,193,7"
-    }
-  }
-}
-```
+1. Komponente in `dashboard-src/src/components/visu/` erstellen
+2. In `VseRenderer.tsx` registrieren
+3. `npm run build` ausführen
+4. Nach `static/` kopieren
 
-### 2. React-Komponente erstellen
-
-Datei: `src/components/visu/VseMyWidget.tsx`
-
-```tsx
-import type { VseWidgetInstance, VseTemplate } from "@/types/vse";
-import { useGroupAddresses } from "@/hooks/useKnx";
-
-interface Props {
-  instance: VseWidgetInstance;
-  template: VseTemplate;
-}
-
-export default function VseMyWidget({ instance, template }: Props) {
-  const { data: addresses } = useGroupAddresses();
-  
-  const vars = {
-    ...Object.fromEntries(
-      Object.entries(template.variables).map(([k, v]) => [k, v.default])
-    ),
-    ...instance.variableValues,
-  };
-  
-  const valueAddr = instance.koBindings["ko1"];
-  const ga = addresses?.find((a) => a.address === valueAddr);
-  const value = ga?.value || "0";
-  
-  return (
-    <div style={{ 
-      width: template.width, 
-      height: template.height,
-      background: "rgba(255,255,255,0.1)",
-      borderRadius: 12,
-      padding: 16,
-    }}>
-      <div style={{ color: "#fff" }}>{instance.label}</div>
-      <div style={{ color: `rgb(${vars.var1})`, fontSize: 24 }}>
-        {value}
-      </div>
-    </div>
-  );
-}
-```
-
-### 3. In VseRenderer registrieren
-
-Datei: `src/components/visu/VseRenderer.tsx`
-
-```tsx
-import VseMyWidget from "./VseMyWidget";
-
-const RENDERERS: Record<string, React.ComponentType<Props>> = {
-  // ... andere Widgets
-  myWidget: VseMyWidget,  // render Name aus JSON
-};
-```
-
-### 4. Template hochladen
-
-1. JSON als `my-widget.vse.json` speichern
-2. Einstellungen → Widget Templates → "Template hochladen"
-3. Seite neu laden (Strg+Shift+R)
+Siehe `dashboard-src/README.md` für Details.
 
 ## 🔌 API Endpoints
 
 ### KNX
+- `GET /api/v1/status` - Systemstatus
+- `GET /api/v1/group-addresses` - Alle Gruppenadressen
 - `POST /api/v1/knx/send?group_address=X&value=Y` - Telegramm senden
 
 ### Visualisierung
@@ -275,20 +235,43 @@ const RENDERERS: Record<string, React.ComponentType<Props>> = {
 - `POST /api/v1/vse/upload` - Template hochladen
 - `GET /api/v1/vse/download` - Alle Templates als ZIP
 
+### Logik
+- `GET /api/v1/logic/blocks` - Alle Blöcke
+- `GET /api/v1/logic/export` - Logik-Backup
+- `POST /api/v1/logic/import` - Logik wiederherstellen
+
 ## 📋 Changelog
 
-### v3.0.10 (2025-02-21)
-- Toolbar-Text wieder sichtbar
+### v3.0.19 (2026-02-22)
+- **Fix:** Gauge-Widget min=0 funktioniert jetzt (vorher Fallback auf 960)
+- **Fix:** Mobile Panel lädt Räume vom Server statt localStorage
+- **Neu:** Compass-Speedometer Widget
+- **Neu:** Logik Export/Import in Einstellungen
+- README komplett überarbeitet mit HA Import Anleitung
+
+### v3.0.18
+- Panel lädt jetzt korrekt vom Server-API
+- Template-Pfade korrigiert
+
+### v3.0.17
+- Compass-Speedometer Widget hinzugefügt
+
+### v3.0.16
+- Logging reduziert (weniger Spam)
+- Source Code im Paket (dashboard-src/)
+
+### v3.0.15
+- Explizite Routen für /panel, /visu, etc.
+
+### v3.0.11
+- VseDynamicWidget für Widgets ohne Programmierung
+
+### v3.0.10
 - Widget Template Upload/Download
 - Mobile Panel mit QR-Code
-- Neues Widget: markdown-card
-- README mit Widget-Erstellungsanleitung
 
 ### v3.0.7
-- Strompreis-Chart Zeitzonenfix
-
-### v3.0.5
-- crypto.randomUUID() Polyfill
+- Strompreis-Chart Zeitzonenfix (EPEX)
 
 ### v3.0.0
 - Komplettes Redesign mit React/TypeScript
