@@ -2,7 +2,7 @@
 
 Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home Systemen.
 
-![Version](https://img.shields.io/badge/version-3.0.26-blue)
+![Version](https://img.shields.io/badge/version-3.0.28-blue)
 
 ## 🚀 Features
 
