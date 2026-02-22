@@ -158,13 +158,13 @@ export default function EditVseWidgetDialog({ open, onOpenChange, widget, templa
                         {filteredAddresses.map((addr) => (
                           <button
                             key={addr.address}
-                            className="w-full text-left px-2 py-1 rounded text-[10px] hover:bg-primary/10 transition-colors flex items-center gap-2"
+                            className="w-full text-left px-2 py-1 rounded text-[9px] hover:bg-primary/10 transition-colors flex items-center gap-2"
                             onClick={() => selectAddress(addr.address)}
                           >
-                            <span className="font-mono w-16 shrink-0 text-primary">{addr.address}</span>
-                            <span className="truncate flex-1 text-foreground">{addr.name || "–"}</span>
+                            <span className="font-mono shrink-0 text-primary" style={{ minWidth: 50 }}>{addr.address}</span>
+                            <span className="truncate flex-1 text-foreground text-[8px]">{addr.name || "–"}</span>
                             {addr.is_internal && (
-                              <span className="text-[9px] px-1 rounded bg-purple-500/20 text-purple-400">IKO</span>
+                              <span className="text-[7px] px-1 rounded bg-purple-500/20 text-purple-400 shrink-0">IKO</span>
                             )}
                           </button>
                         ))}

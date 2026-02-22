@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSendKnxCommand, useGroupAddresses } from "@/hooks/useKnx";
 import { toast } from "sonner";
 import MdiIcon from "./MdiIcon";
@@ -24,8 +24,9 @@ function rgbToRgba(rgb: string, alpha: number): string {
 export default function VseSwitchCard({ instance, template }: Props) {
   const { data: addresses } = useGroupAddresses();
   const send = useSendKnxCommand();
-  const [localOn, setLocalOn] = useState(false);
-  const optimisticUntil = useRef(0);
+  const [localOn, setLocalOn] = useState<boolean | null>(null);
+  const lastToggleTime = useRef(0);
+  const lastRemoteValue = useRef<string | null>(null);
 
   const vars = {
     ...Object.fromEntries(Object.entries(template.variables).map(([k, v]) => [k, v.default])),
@@ -38,9 +39,20 @@ export default function VseSwitchCard({ instance, template }: Props) {
   const ga = addresses?.find((a) => a.address === statusAddr);
   const remoteOn = ga?.value === "True" || ga?.value === "1" || ga?.value === "true" || ga?.value === "on";
 
-  // Use local state for a few seconds after toggle to prevent flicker
-  const useOptimistic = Date.now() < optimisticUntil.current;
-  const isOn = useOptimistic ? localOn : (ga ? remoteOn : localOn);
+  // Track remote changes but ignore updates for 3 seconds after user toggle
+  useEffect(() => {
+    if (ga?.value !== undefined && ga?.value !== lastRemoteValue.current) {
+      const timeSinceToggle = Date.now() - lastToggleTime.current;
+      if (timeSinceToggle > 3000) {
+        // Only accept remote updates after 3 seconds
+        setLocalOn(null);
+      }
+      lastRemoteValue.current = ga?.value ?? null;
+    }
+  }, [ga?.value]);
+
+  // Use local state if recently toggled, otherwise use remote
+  const isOn = localOn !== null ? localOn : remoteOn;
 
   // Colors
   const activeColor = vars.var3 || "255,193,7";
@@ -71,6 +83,11 @@ export default function VseSwitchCard({ instance, template }: Props) {
   const textOff = vars.var6 || "Aus";
   const statusText = isOn ? textOn : textOff;
 
+  // Badge position (relative to icon container)
+  const badgeOffsetX = Number(vars.var25) || 0;
+  const badgeOffsetY = Number(vars.var26) || 0;
+  const showBadge = vars.var27 !== "0" && vars.var27 !== false;
+
   // Icons
   const mainIconName = vars.var1 || "lightbulb";
   const badgeIconOn = vars.var2 || "power";
@@ -93,8 +110,9 @@ export default function VseSwitchCard({ instance, template }: Props) {
     
     console.log(`[Switch] ${instance.label}: Sending ${sendValue} to ${sendAddr}`);
     
+    // Set local state and mark toggle time
     setLocalOn(newState);
-    optimisticUntil.current = Date.now() + 5000;
+    lastToggleTime.current = Date.now();
     
     send.mutate(
       { address: sendAddr, value: sendValue },
@@ -107,57 +125,71 @@ export default function VseSwitchCard({ instance, template }: Props) {
           console.error(`[Switch] ${instance.label}: Send failed`, error);
           toast.error(`${instance.label}: Senden fehlgeschlagen - ${error.message}`);
           // Revert optimistic state
-          setLocalOn(!newState);
+          setLocalOn(null);
         }
       }
     );
   };
 
+  // Use instance size or template defaults
+  const w = instance.widthOverride ?? template.width;
+  const h = instance.heightOverride ?? template.height;
+
   return (
     <button
       onClick={toggle}
-      className="relative flex flex-col items-center justify-center gap-1.5 transition-all duration-300 cursor-pointer select-none hover:scale-[1.03] active:scale-[0.97]"
+      className="relative flex flex-col items-center justify-center gap-1 transition-all duration-300 cursor-pointer select-none hover:scale-[1.03] active:scale-[0.97]"
       style={{
-        width: template.width,
-        height: template.height,
+        width: w,
+        height: h,
         borderRadius,
         border: `${borderWidth}px solid ${rgbToRgba(borderColor, borderOpacity)}`,
         background: `linear-gradient(135deg, ${rgbToRgba(bgColor, bgOpacity)} 0%, ${rgbToRgba(bgColor, bgOpacity * 0.85)} 100%)`,
         boxShadow: showGlow && isOn
           ? `0 0 20px ${rgbToRgba(activeColor, 0.2)}, inset 0 1px 0 rgba(255,255,255,0.05)`
           : "inset 0 1px 0 rgba(255,255,255,0.05)",
+        overflow: "hidden",
       }}
     >
       {/* Icon + Badge container */}
-      <div className="relative" style={{ width: iconSize + 16, height: iconSize + 16 }}>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <MdiIcon
-            name={mainIconName}
-            size={iconSize}
-            color={parseRgb(currentColor)}
-          />
-        </div>
-        {/* Badge */}
-        <div
-          className="absolute -top-1 -right-1 rounded-full flex items-center justify-center transition-colors duration-300"
-          style={{
-            width: badgeSize,
-            height: badgeSize,
-            backgroundColor: parseRgb(badgeColor),
-          }}
-        >
-          <MdiIcon
-            name={isOn ? badgeIconOn : badgeIconOff}
-            size={badgeSize * 0.6}
-            color="white"
-          />
-        </div>
+      <div 
+        className="relative flex items-center justify-center" 
+        style={{ 
+          width: Math.min(iconSize + badgeSize, w - 20), 
+          height: iconSize,
+          flexShrink: 0,
+        }}
+      >
+        <MdiIcon
+          name={mainIconName}
+          size={iconSize}
+          color={parseRgb(currentColor)}
+        />
+        {/* Badge - positioned relative to icon */}
+        {showBadge && (
+          <div
+            className="absolute rounded-full flex items-center justify-center transition-colors duration-300"
+            style={{
+              width: badgeSize,
+              height: badgeSize,
+              backgroundColor: parseRgb(badgeColor),
+              top: -badgeSize / 3 + badgeOffsetY,
+              right: -badgeSize / 3 + badgeOffsetX,
+            }}
+          >
+            <MdiIcon
+              name={isOn ? badgeIconOn : badgeIconOff}
+              size={badgeSize * 0.6}
+              color="white"
+            />
+          </div>
+        )}
       </div>
 
       {/* Label */}
       <span
-        className="font-medium text-neutral-200 truncate max-w-[90%]"
-        style={{ fontSize: labelFontSize }}
+        className="font-medium text-neutral-200 truncate px-2"
+        style={{ fontSize: labelFontSize, maxWidth: w - 16 }}
       >
         {instance.label}
       </span>

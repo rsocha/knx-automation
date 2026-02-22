@@ -81,10 +81,15 @@ export default function GenerateIKODialog({ open, onOpenChange }: Props) {
     const blockName = selectedBlock.name || selectedBlock.block_type;
     const groupName = `${blockName} #${selectedBlock.block_id}`;
     let successCount = 0;
+    
+    // Extract instance number from instance_id (e.g., "200352_SonosController_5_062328" -> "5")
+    const idParts = selectedBlock.instance_id.split('_');
+    const instanceNum = idParts.length >= 3 ? idParts[idParts.length - 2] : "0";
 
     for (const port of selectedPorts) {
       const portDir = port.type === "input" ? "E" : "A";
-      const address = `IKO:${selectedBlock.instance_id}:${port.key}`;
+      // Simplified IKO format: IKO:InstanceNumber_BlockName:PortKey
+      const address = `IKO:${instanceNum}_${blockName}:${port.key}`;
 
       try {
         await createAddr.mutateAsync({

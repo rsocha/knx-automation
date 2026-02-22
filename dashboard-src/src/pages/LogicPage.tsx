@@ -175,7 +175,13 @@ function LogicPageInner() {
     const blockName = block.name || block.block_type;
     const groupName = `${blockName} #${block.block_id}`;
     const portDir = portPopup.portType === "input" ? "E" : "A";
-    const address = `IKO:${block.instance_id}:${portPopup.portKey}`;
+    
+    // Simplified IKO format: IKO:InstanceNumber_BlockName:PortKey
+    // Extract instance number from instance_id (e.g., "200352_SonosController_5_062328" -> "5")
+    const parts = block.instance_id.split('_');
+    const instanceNum = parts.length >= 3 ? parts[parts.length - 2] : "0";
+    const address = `IKO:${instanceNum}_${blockName}:${portPopup.portKey}`;
+    
     const portCfg = portPopup.portType === "input"
       ? block.inputs[portPopup.portKey]
       : block.outputs[portPopup.portKey];

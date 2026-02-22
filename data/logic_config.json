@@ -61,18 +61,19 @@
         "A5": "IKO:200352_SonosController_5_062328:A5",
         "A6": "IKO:200352_SonosController_5_062328:A6",
         "A7": "IKO:200352_SonosController_5_062328:A7",
-        "A15": "IKO:200352_SonosController_5_062328:A15"
+        "A15": "IKO:200352_SonosController_5_062328:A15",
+        "A2": "IKO:5_SONOS Controller:A2"
       },
       "input_values": {
         "E1": true,
         "E2": 1,
         "E3": "192.168.0.15",
-        "E4": false,
-        "E5": true,
+        "E4": true,
+        "E5": false,
         "E6": false,
         "E7": false,
         "E8": false,
-        "E9": 5,
+        "E9": 24,
         "E10": -1,
         "E11": -100,
         "E12": -100,
@@ -86,139 +87,6 @@
         "E20": true,
         "E21": -1,
         "E22": false
-      }
-    },
-    {
-      "instance_id": "20031_OAuth2TokenManager_1_110338",
-      "block_type": "OAuth2TokenManager",
-      "page_id": "page_83df6572",
-      "enabled": true,
-      "input_bindings": {},
-      "output_bindings": {
-        "A1": "IKO:OAuth2 Token_A1"
-      },
-      "input_values": {
-        "E1": true,
-        "E2": false,
-        "E3": "5e62b66ae43ba0583c78dd27",
-        "E4": "XihFzL7Z9ZUPTjUBzPIcOtLx4A1L",
-        "E5": "",
-        "E6": "https://api.netatmo.com/oauth2/token",
-        "E7": "read_homecoach",
-        "E8": "0fcd9e39fe6bb11c897427442849ab40",
-        "E9": "http://localhost",
-        "E10": "knx_automation",
-        "E11": "https://api.netatmo.com/oauth2/authorize"
-      }
-    },
-    {
-      "instance_id": "20032_NetatmoHomecoach_2_110346",
-      "block_type": "NetatmoHomecoach",
-      "page_id": "page_83df6572",
-      "enabled": true,
-      "input_bindings": {
-        "E4": "",
-        "E3": "IKO:OAuth2 Token_A1",
-        "E1": "IKO:20032_NetatmoHomecoach_2_110346:E1"
-      },
-      "output_bindings": {
-        "A5": "IKO:20032_NetatmoHomecoach_2_110346:A5",
-        "A6": "IKO:20032_NetatmoHomecoach_2_110346:A6",
-        "A7": "IKO:20032_NetatmoHomecoach_2_110346:A7",
-        "A8": "IKO:20032_NetatmoHomecoach_2_110346:A8",
-        "A1": "IKO:20032_NetatmoHomecoach_2_110346:A1",
-        "A2": "IKO:20032_NetatmoHomecoach_2_110346:A2",
-        "A3": "IKO:20032_NetatmoHomecoach_2_110346:A3",
-        "A4": "IKO:20032_NetatmoHomecoach_2_110346:A4",
-        "A9": "IKO:20032_NetatmoHomecoach_2_110346:A9",
-        "A10": "IKO:20032_NetatmoHomecoach_2_110346:A10",
-        "A11": "IKO:20032_NetatmoHomecoach_2_110346:A11",
-        "A12": "IKO:20032_NetatmoHomecoach_2_110346:A12",
-        "A13": "IKO:20032_NetatmoHomecoach_2_110346:A13",
-        "A14": "IKO:20032_NetatmoHomecoach_2_110346:A14",
-        "A15": "IKO:20032_NetatmoHomecoach_2_110346:A15",
-        "A16": "IKO:20032_NetatmoHomecoach_2_110346:A16",
-        "A17": "IKO:20032_NetatmoHomecoach_2_110346:A17"
-      },
-      "input_values": {
-        "E1": true,
-        "E2": 300,
-        "E3": "557d033d29977ed2858b4629|69804b7d8feae7f25533666e55705bdc",
-        "E4": "",
-        "E5": false
-      }
-    },
-    {
-      "instance_id": "20035_EPEXSpotPrice_3_111001",
-      "block_type": "EPEXSpotPrice",
-      "page_id": "page_698d3010",
-      "enabled": true,
-      "input_bindings": {},
-      "output_bindings": {
-        "A7": "INT/Epex/A7",
-        "A16": "INT/Epex/A16",
-        "A17": "INT/Epex/A17"
-      },
-      "input_values": {
-        "E1": true,
-        "E2": 300,
-        "E3": 1,
-        "E4": 0.0,
-        "E5": false
-      }
-    },
-    {
-      "instance_id": "20030_FroniusGen24_4_111048",
-      "block_type": "FroniusGen24",
-      "page_id": "page_be212972",
-      "enabled": true,
-      "input_bindings": {},
-      "output_bindings": {
-        "A4": "IKO:FRONIUS/A4",
-        "A16": "IKO:FRONIUS/A16",
-        "A5": "IKO:FRONIUS/A5",
-        "A8": "IKO:20030_FroniusGen24_4_111048:A8"
-      },
-      "input_values": {
-        "E1": true,
-        "E2": "192.168.0.54",
-        "E3": 10,
-        "E4": "00:00",
-        "E5": false
-      }
-    },
-    {
-      "instance_id": "20033_ShellyPlus1PM_5_111117",
-      "block_type": "ShellyPlus1PM",
-      "page_id": "page_8b1124c5",
-      "enabled": true,
-      "input_bindings": {},
-      "output_bindings": {},
-      "input_values": {
-        "E1": true,
-        "E2": "192.168.0.76",
-        "E3": 30,
-        "E4": -1,
-        "E5": false,
-        "E6": 0,
-        "E7": false
-      }
-    },
-    {
-      "instance_id": "20027_EcowittWS90_6_111212",
-      "block_type": "EcowittWS90",
-      "page_id": "page_4b95ccd3",
-      "enabled": true,
-      "input_bindings": {},
-      "output_bindings": {
-        "A1": "IKO/ECOwitt/A1",
-        "A2": "IKO/ECOwitt/A2",
-        "A3": "IKO/ECOwitt/A4"
-      },
-      "input_values": {
-        "E1": "192.168.0.16",
-        "E2": 60,
-        "E3": false
       }
     }
   ]

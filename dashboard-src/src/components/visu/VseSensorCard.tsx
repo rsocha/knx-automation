@@ -25,7 +25,11 @@ export default function VseSensorCard({ instance, template }: Props) {
   const valueOpacity = vars.var10 || "0.9";
   const iconColor = vars.var11 || "100,181,246";
   const borderRadius = Number(vars.var12) || 16;
-  const borderOpacity = parseFloat(vars.var13) || 0.3;
+  const borderOpacity = Number(vars.var13) ?? 30;
+  const borderColor = vars.var14 || "255,255,255";
+  const borderWidth = Number(vars.var15) || 1;
+  const bgColor = vars.var16 || "30,30,35";
+  const bgOpacity = Number(vars.var17) ?? 90;
   const unitText = vars.unit || "°C";
 
   const ko1Addr = instance.koBindings["ko1"];
@@ -46,8 +50,8 @@ export default function VseSensorCard({ instance, template }: Props) {
         gap: 12,
         padding: "8px 14px",
         borderRadius,
-        border: `1.5px solid rgba(128,128,128,${borderOpacity})`,
-        background: "rgba(20,20,20,0.6)",
+        border: `${borderWidth}px solid rgba(${borderColor},${borderOpacity / 100})`,
+        background: `rgba(${bgColor},${bgOpacity / 100})`,
         boxSizing: "border-box",
         overflow: "hidden",
       }}

@@ -56,7 +56,7 @@ export default function AppSidebar() {
             <span className="font-semibold text-sidebar-foreground text-sm tracking-tight leading-tight">
               KNX Automation
             </span>
-            <span className="text-[10px] text-muted-foreground font-mono">v3.0.14</span>
+            <span className="text-[10px] text-muted-foreground font-mono">v3.0.26</span>
           </div>
         )}
       </div>

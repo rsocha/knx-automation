@@ -39,7 +39,59 @@ class PageCreate(BaseModel):
 
 @router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "3.0.23"}
+    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "3.0.28"}
+
+@router.post("/system/fix-permissions")
+async def fix_permissions():
+    """Fix file permissions for data directory"""
+    import os
+    import subprocess
+    
+    data_dir = Path("data")
+    fixed = []
+    errors = []
+    
+    try:
+        # Fix data directory
+        data_dir.mkdir(parents=True, exist_ok=True)
+        os.chmod(str(data_dir), 0o755)
+        fixed.append("data/")
+        
+        # Fix all JSON files
+        for f in data_dir.glob("*.json"):
+            try:
+                os.chmod(str(f), 0o666)
+                fixed.append(str(f.name))
+            except Exception as e:
+                errors.append(f"{f.name}: {e}")
+        
+        # Fix database
+        db_file = data_dir / "knx.db"
+        if db_file.exists():
+            try:
+                os.chmod(str(db_file), 0o666)
+                fixed.append("knx.db")
+            except Exception as e:
+                errors.append(f"knx.db: {e}")
+        
+        # Fix custom_blocks
+        custom_dir = data_dir / "custom_blocks"
+        if custom_dir.exists():
+            try:
+                os.chmod(str(custom_dir), 0o755)
+                for f in custom_dir.glob("*.py"):
+                    os.chmod(str(f), 0o666)
+                fixed.append("custom_blocks/")
+            except Exception as e:
+                errors.append(f"custom_blocks: {e}")
+        
+        return {
+            "status": "success" if not errors else "partial",
+            "fixed": fixed,
+            "errors": errors
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ============ LICENSE SYSTEM ============
 LICENSE_FILE = Path("data/license.json")
@@ -192,14 +244,31 @@ VISU_CONFIG_FILE = Path("data/visu_config.json")
 VISU_ROOMS_FILE = Path("data/visu_rooms.json")
 VSE_DIR = Path("data/vse")
 
+def ensure_data_writable():
+    """Ensure data directory and files are writable"""
+    data_dir = Path("data")
+    data_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        import os
+        os.chmod(str(data_dir), 0o755)
+        for f in data_dir.glob("*.json"):
+            os.chmod(str(f), 0o666)
+        db_file = data_dir / "knx.db"
+        if db_file.exists():
+            os.chmod(str(db_file), 0o666)
+    except Exception as e:
+        logger.warning(f"Could not set permissions: {e}")
+
 @router.get("/visu/rooms")
 async def get_visu_rooms():
     """Get visualization rooms with widgets - auto-saved on server"""
     try:
-        VISU_ROOMS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        ensure_data_writable()
         if VISU_ROOMS_FILE.exists():
             with open(VISU_ROOMS_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                rooms = json.load(f)
+                logger.info(f"Loaded {len(rooms)} visu rooms from server")
+                return rooms
         return []
     except Exception as e:
         logger.error(f"Error loading visu rooms: {e}")
@@ -207,15 +276,46 @@ async def get_visu_rooms():
 
 @router.post("/visu/rooms")
 async def save_visu_rooms(rooms: list = Body(...)):
-    """Save visualization rooms with widgets"""
+    """Save visualization rooms with widgets - with backup"""
     try:
+        ensure_data_writable()
         VISU_ROOMS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Create backup before saving
+        if VISU_ROOMS_FILE.exists():
+            backup_file = VISU_ROOMS_FILE.with_suffix('.json.bak')
+            try:
+                import shutil
+                shutil.copy(VISU_ROOMS_FILE, backup_file)
+                logger.info(f"Created backup: {backup_file}")
+            except Exception as e:
+                logger.warning(f"Backup failed: {e}")
+        
+        # Save new data
         with open(VISU_ROOMS_FILE, 'w', encoding='utf-8') as f:
             json.dump(rooms, f, ensure_ascii=False, indent=2)
-        logger.info(f"Saved {len(rooms)} visu rooms")
+        
+        logger.info(f"Saved {len(rooms)} visu rooms to server")
         return {"status": "saved", "count": len(rooms)}
+    except PermissionError as e:
+        logger.error(f"Permission error saving visu rooms: {e}")
+        raise HTTPException(status_code=500, detail=f"Keine Schreibrechte: {e}. Bitte 'chmod 666 /opt/knx-automation/data/visu_rooms.json' ausführen.")
     except Exception as e:
         logger.error(f"Error saving visu rooms: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/visu/rooms/restore-backup")
+async def restore_visu_backup():
+    """Restore visu rooms from backup"""
+    backup_file = VISU_ROOMS_FILE.with_suffix('.json.bak')
+    if not backup_file.exists():
+        raise HTTPException(status_code=404, detail="Kein Backup vorhanden")
+    try:
+        import shutil
+        shutil.copy(backup_file, VISU_ROOMS_FILE)
+        logger.info("Restored visu rooms from backup")
+        return {"status": "restored"}
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/visu/export")
@@ -223,7 +323,7 @@ async def export_visu_config():
     """Export complete visu configuration as downloadable JSON"""
     try:
         export_data = {
-            "version": "3.0.23",
+            "version": "3.0.28",
             "exported_at": datetime.now().isoformat(),
             "rooms": [],
             "config": {}
@@ -848,7 +948,7 @@ async def get_status():
             "connection_type": knx_manager._connection_type,
             "group_address_count": await db_manager.get_group_address_count(),
             "timestamp": datetime.now().isoformat(),
-            "version": "3.0.23"
+            "version": "3.0.28"
         }
     except Exception as e:
         logger.error(f"Status error: {e}")
@@ -907,12 +1007,22 @@ async def update_group_address(address: str, data: GroupAddressCreate):
 
 @router.delete("/group-addresses/{address:path}")
 async def delete_group_address(address: str):
-    """Delete a group address (supports internal IKO: addresses)"""
+    """Delete a group address (supports internal IKO: addresses)
+    
+    Also removes any bindings to this address in logic blocks.
+    """
     from urllib.parse import unquote
     address = unquote(address)
     logger.info(f"DELETE address: {address}")
+    
+    # First, unbind from any logic blocks
+    removed_bindings = logic_manager.unbind_address(address)
+    if removed_bindings > 0:
+        logger.info(f"Removed {removed_bindings} binding(s) for deleted address {address}")
+    
+    # Then delete the address
     if await db_manager.delete_group_address(address):
-        return {"status": "deleted"}
+        return {"status": "deleted", "bindings_removed": removed_bindings}
     raise HTTPException(status_code=404, detail="Not found")
 
 async def _import_csv_content(content: bytes) -> dict:
@@ -1392,6 +1502,21 @@ async def upload_update(file: UploadFile = File(...)):
             # Cleanup temp
             shutil.rmtree(extract_dir)
             
+            # Fix permissions BEFORE restart
+            try:
+                import os
+                data_dir = base_dir / "data"
+                data_dir.mkdir(parents=True, exist_ok=True)
+                os.chmod(str(data_dir), 0o755)
+                for f in data_dir.glob("*.json"):
+                    os.chmod(str(f), 0o666)
+                db_file = data_dir / "knx.db"
+                if db_file.exists():
+                    os.chmod(str(db_file), 0o666)
+                logger.info("Fixed permissions after update")
+            except Exception as e:
+                logger.warning(f"Could not fix permissions: {e}")
+            
             # Auto-restart service
             try:
                 subprocess.Popen(['systemctl', 'restart', 'knx-automation'], 
@@ -1477,7 +1602,7 @@ async def export_logic_config():
     """Export all logic blocks and pages as downloadable JSON"""
     try:
         export_data = {
-            "version": "3.0.23",
+            "version": "3.0.28",
             "exported_at": datetime.now().isoformat(),
             "blocks": logic_manager.get_all_blocks(),
             "pages": list(logic_manager._pages.values()) if hasattr(logic_manager, '_pages') else []
@@ -1620,14 +1745,19 @@ async def bind_block(instance_id: str, data: BindingCreate):
             source_instance = parts[1]
             source_output = parts[2]
             
-            # Create IKO address for this connection
-            iko_address = f"IKO:{source_instance[:15]}_{source_output}"
-            
-            # Get source block name for IKO name
+            # Get source block for name and ID
             source_block = logic_manager.get_block(source_instance)
             if source_block:
-                iko_name = f"{source_block._name or source_block.NAME}.{source_output}"
+                # Simplified IKO format: IKO:InstanceNum_BlockName:OutputKey
+                # Extract instance number from instance_id
+                id_parts = source_instance.split('_')
+                instance_num = id_parts[-2] if len(id_parts) >= 3 else "0"
+                block_name = source_block._name or source_block.NAME
+                iko_address = f"IKO:{instance_num}_{block_name}:{source_output}"
+                iko_name = f"{block_name}.{source_output}"
             else:
+                # Fallback if block not found
+                iko_address = f"IKO:{source_instance[:15]}:{source_output}"
                 iko_name = f"{source_instance}.{source_output}"
             
             # Create IKO if it doesn't exist

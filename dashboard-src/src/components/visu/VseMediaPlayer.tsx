@@ -44,10 +44,17 @@ export default function VseMediaPlayer({ instance, template }: Props) {
   const album = getKoValue("ko3") || testAlbum;
   const radioStation = getKoValue("ko13");
   const coverUrl = getKoValue("ko4") || "";
-  const isPlaying = getKoValue("ko5") === "1" || getKoValue("ko5") === 1 || getKoValue("ko5") === true;
+  
+  // Status: 1=Play, 2=Stop, 3=Pause
+  const statusValue = Number(getKoValue("ko5") || 0);
+  const isPlaying = statusValue === 1;
+  const isStopped = statusValue === 2;
+  const isPaused = statusValue === 3 || statusValue === 0;
+  
   const volume = Number(getKoValue("ko6") || 50);
   const position = Number(getKoValue("ko7") || 0);
   const duration = Number(getKoValue("ko8") || 0);
+  const isMuted = getKoValue("ko19") === "1" || getKoValue("ko19") === 1;
 
   const displayAlbum = radioStation || album;
 
@@ -61,23 +68,20 @@ export default function VseMediaPlayer({ instance, template }: Props) {
   };
 
   const handlePlayPause = () => {
-    // Check if separate Play (ko9) and Pause (ko14) KOs are configured
-    const playAddr = instance.koBindings["ko9"];
-    const pauseAddr = instance.koBindings["ko14"];
-    
-    if (playAddr && pauseAddr) {
-      // Separate KOs: Send 1 to the appropriate address
-      if (isPlaying) {
-        // Currently playing -> send Pause
-        sendCommand({ address: pauseAddr, value: 1 });
-      } else {
-        // Currently paused -> send Play
-        sendCommand({ address: playAddr, value: 1 });
-      }
-    } else if (playAddr) {
-      // Single KO: Toggle (0/1)
-      sendCommand({ address: playAddr, value: isPlaying ? 0 : 1 });
+    if (isPlaying) {
+      // Currently playing -> send Pause
+      const pauseAddr = instance.koBindings["ko14"];
+      if (pauseAddr) sendCommand({ address: pauseAddr, value: 1 });
+    } else {
+      // Currently paused/stopped -> send Play
+      const playAddr = instance.koBindings["ko9"];
+      if (playAddr) sendCommand({ address: playAddr, value: 1 });
     }
+  };
+
+  const handleStop = () => {
+    const addr = instance.koBindings["ko15"];
+    if (addr) sendCommand({ address: addr, value: 1 });
   };
 
   const handlePrev = () => {
@@ -88,6 +92,21 @@ export default function VseMediaPlayer({ instance, template }: Props) {
   const handleNext = () => {
     const addr = instance.koBindings["ko10"];
     if (addr) sendCommand({ address: addr, value: 1 });
+  };
+
+  const handleRewind = () => {
+    const addr = instance.koBindings["ko17"];
+    if (addr) sendCommand({ address: addr, value: 1 });
+  };
+
+  const handleForward = () => {
+    const addr = instance.koBindings["ko16"];
+    if (addr) sendCommand({ address: addr, value: 1 });
+  };
+
+  const handleMute = () => {
+    const addr = instance.koBindings["ko18"];
+    if (addr) sendCommand({ address: addr, value: isMuted ? 0 : 1 });
   };
 
   const handleVolumeChange = (val: number[]) => {
@@ -105,7 +124,7 @@ export default function VseMediaPlayer({ instance, template }: Props) {
         background: `rgba(${bgColor}, ${bgOpacity / 100})`,
         display: "flex",
         flexDirection: "column",
-        padding: 20,
+        padding: 16,
         boxSizing: "border-box",
         overflow: "hidden",
       }}
@@ -117,30 +136,31 @@ export default function VseMediaPlayer({ instance, template }: Props) {
           aspectRatio: "1",
           borderRadius: coverRadius,
           overflow: "hidden",
-          marginBottom: 16,
+          marginBottom: 12,
           background: `linear-gradient(135deg, rgba(${accentColor},0.3) 0%, rgba(${accentColor},0.1) 100%)`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          flexShrink: 0,
         }}
       >
         {coverUrl ? (
           <img src={coverUrl} alt="Cover" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         ) : (
-          <MdiIcon name="music" size={80} color={`rgba(${accentColor},0.5)`} />
+          <MdiIcon name="music" size={60} color={`rgba(${accentColor},0.5)`} />
         )}
       </div>
 
       {/* Title & Artist */}
-      <div style={{ textAlign: "center", marginBottom: 12 }}>
-        <div style={{ color: textColor, fontSize: 18, fontWeight: 600, lineHeight: 1.3, marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <div style={{ textAlign: "center", marginBottom: 8 }}>
+        <div style={{ color: textColor, fontSize: 16, fontWeight: 600, lineHeight: 1.3, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {title}
         </div>
-        <div style={{ color: subTextColor, fontSize: 14, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <div style={{ color: subTextColor, fontSize: 13, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {artist}
         </div>
         {displayAlbum && (
-          <div style={{ color: `rgba(${accentColor},0.8)`, fontSize: 12, marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <div style={{ color: `rgba(${accentColor},0.8)`, fontSize: 11, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {displayAlbum}
           </div>
         )}
@@ -148,7 +168,7 @@ export default function VseMediaPlayer({ instance, template }: Props) {
 
       {/* Progress */}
       {duration > 0 && (
-        <div style={{ marginBottom: 12 }}>
+        <div style={{ marginBottom: 10 }}>
           <div style={{ height: 4, borderRadius: 2, background: `rgba(${accentColor},0.2)`, overflow: "hidden" }}>
             <div
               style={{
@@ -159,52 +179,76 @@ export default function VseMediaPlayer({ instance, template }: Props) {
               }}
             />
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-            <span style={{ color: subTextColor, fontSize: 10 }}>{formatTime(position)}</span>
-            <span style={{ color: subTextColor, fontSize: 10 }}>{formatTime(duration)}</span>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+            <span style={{ color: subTextColor, fontSize: 9 }}>{formatTime(position)}</span>
+            <span style={{ color: subTextColor, fontSize: 9 }}>{formatTime(duration)}</span>
           </div>
         </div>
       )}
 
-      {/* Controls */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 24, marginBottom: 16 }}>
-        <button onClick={handlePrev} style={{ background: "none", border: "none", cursor: "pointer", padding: 8 }}>
-          <MdiIcon name="skip-previous" size={28} color={textColor} />
+      {/* Main Controls */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 8 }}>
+        {/* Rewind */}
+        <button onClick={handleRewind} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+          <MdiIcon name="rewind-30" size={20} color={subTextColor} />
         </button>
+        
+        {/* Previous */}
+        <button onClick={handlePrev} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+          <MdiIcon name="skip-previous" size={24} color={textColor} />
+        </button>
+        
+        {/* Play/Pause */}
         <button
           onClick={handlePlayPause}
           style={{
             background: `rgba(${accentColor},0.9)`,
             border: "none",
             borderRadius: "50%",
-            width: 56,
-            height: 56,
+            width: 48,
+            height: 48,
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <MdiIcon name={isPlaying ? "pause" : "play"} size={32} color="#fff" />
+          <MdiIcon name={isPlaying ? "pause" : "play"} size={28} color="#fff" />
         </button>
-        <button onClick={handleNext} style={{ background: "none", border: "none", cursor: "pointer", padding: 8 }}>
-          <MdiIcon name="skip-next" size={28} color={textColor} />
+        
+        {/* Next */}
+        <button onClick={handleNext} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+          <MdiIcon name="skip-next" size={24} color={textColor} />
+        </button>
+        
+        {/* Forward */}
+        <button onClick={handleForward} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+          <MdiIcon name="fast-forward-30" size={20} color={subTextColor} />
         </button>
       </div>
 
-      {/* Volume */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <MdiIcon name="volume-low" size={18} color={subTextColor} />
+      {/* Volume Row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {/* Mute Button */}
+        <button 
+          onClick={handleMute} 
+          style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}
+        >
+          <MdiIcon name={isMuted ? "volume-off" : "volume-low"} size={18} color={isMuted ? `rgb(${accentColor})` : subTextColor} />
+        </button>
+        
+        {/* Volume Slider */}
         <Slider
-          value={[volume]}
+          value={[isMuted ? 0 : volume]}
           min={0}
           max={100}
           step={1}
           onValueChange={handleVolumeChange}
           className="flex-1"
         />
+        
         <MdiIcon name="volume-high" size={18} color={subTextColor} />
-        <span style={{ color: subTextColor, fontSize: 12, width: 32, textAlign: "right" }}>{volume}%</span>
+        <span style={{ color: subTextColor, fontSize: 11, width: 28, textAlign: "right" }}>{volume}%</span>
       </div>
     </div>
   );

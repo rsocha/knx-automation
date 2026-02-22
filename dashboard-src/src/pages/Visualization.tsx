@@ -124,17 +124,31 @@ export default function Visualization() {
     retry: 2,
   });
 
-  // Save mutation
+  // Save mutation with retry
   const saveMutation = useMutation({
     mutationFn: saveVisuRooms,
     onSuccess: () => {
       console.log("[Visu] Saved to server successfully");
       setSyncStatus("synced");
     },
-    onError: (err) => {
+    onError: (err: any) => {
       console.error("[Visu] Failed to save to server:", err);
       setSyncStatus("error");
+      
+      // Show error with helpful message
+      const errorMsg = err?.message || String(err);
+      if (errorMsg.includes("Schreibrechte") || errorMsg.includes("readonly")) {
+        toast.error("Speichern fehlgeschlagen: Keine Schreibrechte. Bitte auf System-Update → 'Berechtigungen korrigieren' klicken.", {
+          duration: 8000,
+        });
+      } else {
+        toast.error(`Speichern fehlgeschlagen: ${errorMsg}`, {
+          duration: 5000,
+        });
+      }
     },
+    retry: 2,
+    retryDelay: 1000,
   });
 
   // Load templates on mount

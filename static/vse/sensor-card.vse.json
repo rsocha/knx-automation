@@ -4,7 +4,7 @@
   "description": "Kompakte Sensorkarte mit MDI-Icon, Label und Wert",
   "category": "Sensoren",
   "author": "VSE",
-  "version": "1.0",
+  "version": "1.1",
   "width": 200,
   "height": 50,
   "render": "sensorCard",
@@ -22,7 +22,11 @@
     "var10": { "name": "Wert-Deckkraft", "type": "text", "default": "0.9" },
     "var11": { "name": "Icon-Farbe (R,G,B)", "type": "color", "default": "100,181,246" },
     "var12": { "name": "Border-Radius (px)", "type": "number", "default": 16 },
-    "var13": { "name": "Rahmen-Deckkraft", "type": "text", "default": "0.3" },
+    "var13": { "name": "Rahmen-Deckkraft (%)", "type": "number", "default": 30 },
+    "var14": { "name": "Rahmenfarbe (R,G,B)", "type": "color", "default": "255,255,255" },
+    "var15": { "name": "Rahmenstärke (px)", "type": "number", "default": 1 },
+    "var16": { "name": "Hintergrundfarbe (R,G,B)", "type": "color", "default": "30,30,35" },
+    "var17": { "name": "Hintergrund-Deckkraft (%)", "type": "number", "default": 90 },
     "unit": { "name": "Einheit", "type": "text", "default": "°C" }
   }
 }

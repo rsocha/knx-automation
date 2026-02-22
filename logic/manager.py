@@ -340,6 +340,37 @@ class LogicManager:
         
         return True
     
+    def unbind_address(self, address: str) -> int:
+        """Remove all bindings to a specific address (when KO is deleted)
+        
+        Returns the number of bindings removed.
+        """
+        removed_count = 0
+        
+        # Remove from input bindings
+        if address in self._address_to_blocks:
+            for instance_id, input_key in self._address_to_blocks[address]:
+                block = self._blocks.get(instance_id)
+                if block:
+                    block._input_bindings.pop(input_key, None)
+                    removed_count += 1
+                    logger.info(f"Unbound input {instance_id}.{input_key} from deleted address {address}")
+            del self._address_to_blocks[address]
+        
+        # Remove from output bindings
+        for instance_id, block in self._blocks.items():
+            for output_key, bound_addr in list(block._output_bindings.items()):
+                if bound_addr == address:
+                    del block._output_bindings[output_key]
+                    removed_count += 1
+                    logger.info(f"Unbound output {instance_id}.{output_key} from deleted address {address}")
+        
+        if removed_count > 0:
+            # Save changes to DB
+            asyncio.create_task(self.save_to_db())
+        
+        return removed_count
+    
     async def on_address_changed(self, address: str, value: Any):
         """Called when a KNX or internal address value changes"""
         if not self._running:

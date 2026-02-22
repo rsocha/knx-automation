@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
   RefreshCw, Upload, Download, AlertTriangle, 
-  CheckCircle, Server, HardDrive, Cpu, Clock
+  CheckCircle, Server, HardDrive, Cpu, Clock, Shield, Wrench
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,15 +18,56 @@ interface SystemStatus {
   uptime?: number;
 }
 
+// Hardcoded frontend version - must match package.json
+const FRONTEND_VERSION = "3.0.26";
+
 export default function UpdatePage() {
   const [isRestarting, setIsRestarting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [isFixingPermissions, setIsFixingPermissions] = useState(false);
 
   const { data: status, refetch } = useQuery({
     queryKey: ["system-status"],
-    queryFn: fetchStatus,
+    queryFn: async () => {
+      // Add cache buster to ensure fresh data
+      const res = await fetch(`${getApiBase()}/status?_=${Date.now()}`);
+      if (!res.ok) throw new Error("Failed to fetch status");
+      return res.json();
+    },
     refetchInterval: isRestarting ? 2000 : 10000,
+    staleTime: 0, // Always refetch
   });
+
+  // Check if versions match
+  const backendVersion = status?.version || "–";
+  const versionMismatch = backendVersion !== "–" && backendVersion !== FRONTEND_VERSION;
+
+  // Auto-reload page if backend version doesn't match frontend
+  useEffect(() => {
+    if (versionMismatch) {
+      toast.info("Neue Version erkannt - Seite wird neu geladen...");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    }
+  }, [versionMismatch]);
+
+  const handleFixPermissions = async () => {
+    setIsFixingPermissions(true);
+    try {
+      const res = await fetch(`${getApiBase()}/system/fix-permissions`, { method: "POST" });
+      const data = await res.json();
+      if (data.status === "success") {
+        toast.success(`Berechtigungen korrigiert: ${data.fixed?.join(", ") || "OK"}`);
+      } else if (data.status === "partial") {
+        toast.warning(`Teilweise korrigiert. Fehler: ${data.errors?.join(", ")}`);
+      }
+    } catch (err) {
+      toast.error("Fehler beim Korrigieren der Berechtigungen");
+    } finally {
+      setIsFixingPermissions(false);
+    }
+  };
 
   const handleRestart = async () => {
     if (!confirm("System wirklich neu starten?\n\nAlle laufenden Prozesse werden beendet.")) {
@@ -47,7 +88,11 @@ export default function UpdatePage() {
           clearInterval(checkConnection);
           setIsRestarting(false);
           toast.success("System erfolgreich neu gestartet!");
-          refetch();
+          
+          // Force page reload to get new frontend
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
         } catch {
           if (attempts > 30) {
             clearInterval(checkConnection);
@@ -71,7 +116,7 @@ export default function UpdatePage() {
       return;
     }
 
-    if (!confirm(`Update-Paket "${file.name}" installieren?\n\nDas System wird nach der Installation neu gestartet.`)) {
+    if (!confirm(`Update-Paket "${file.name}" installieren?\n\nDas System wird nach der Installation neu gestartet und die Seite automatisch neu geladen.`)) {
       e.target.value = '';
       return;
     }
@@ -89,11 +134,18 @@ export default function UpdatePage() {
         }
       });
 
-      xhr.addEventListener("load", () => {
+      xhr.addEventListener("load", async () => {
         setUploadProgress(null);
         e.target.value = '';
         if (xhr.status === 200) {
-          toast.success("Update erfolgreich installiert!");
+          toast.success("Update erfolgreich installiert! System wird neu gestartet...");
+          
+          // Fix permissions first
+          try {
+            await fetch(`${getApiBase()}/system/fix-permissions`, { method: "POST" });
+          } catch {}
+          
+          // Then restart
           setTimeout(() => handleRestart(), 1000);
         } else {
           toast.error("Upload fehlgeschlagen");
@@ -106,7 +158,7 @@ export default function UpdatePage() {
         toast.error("Upload fehlgeschlagen");
       });
 
-      xhr.open("POST", `${getApiBase()}/system/update`);
+      xhr.open("POST", `${getApiBase()}/system/update/upload`);
       xhr.send(formData);
     } catch (err) {
       setUploadProgress(null);
@@ -133,6 +185,22 @@ export default function UpdatePage() {
         <h1 className="text-xl font-semibold">System-Update</h1>
       </div>
 
+      {/* Version Mismatch Warning */}
+      {versionMismatch && (
+        <div className="rounded-lg bg-yellow-500/10 border border-yellow-500/30 p-4 flex items-center gap-3">
+          <AlertTriangle className="w-5 h-5 text-yellow-500 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-yellow-500">Version nicht synchron</p>
+            <p className="text-xs text-muted-foreground">
+              Backend: {backendVersion} | Frontend: {FRONTEND_VERSION}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Seite wird automatisch neu geladen...
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* System Status */}
       <div className="rounded-lg bg-card border border-border p-5">
         <h2 className="font-medium mb-4 flex items-center gap-2">
@@ -142,9 +210,16 @@ export default function UpdatePage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="space-y-1">
             <div className="text-xs text-muted-foreground flex items-center gap-1">
-              <HardDrive className="w-3 h-3" /> Version
+              <HardDrive className="w-3 h-3" /> Backend
             </div>
-            <div className="font-mono font-medium">{status?.version || "–"}</div>
+            <div className="font-mono font-medium">{backendVersion}</div>
+          </div>
+          
+          <div className="space-y-1">
+            <div className="text-xs text-muted-foreground flex items-center gap-1">
+              <HardDrive className="w-3 h-3" /> Frontend
+            </div>
+            <div className="font-mono font-medium">{FRONTEND_VERSION}</div>
           </div>
           
           <div className="space-y-1">
@@ -152,13 +227,6 @@ export default function UpdatePage() {
               <Cpu className="w-3 h-3" /> Gateway
             </div>
             <div className="font-mono text-sm">{status?.gateway_ip || "–"}</div>
-          </div>
-          
-          <div className="space-y-1">
-            <div className="text-xs text-muted-foreground flex items-center gap-1">
-              <Clock className="w-3 h-3" /> Uptime
-            </div>
-            <div className="font-mono text-sm">{formatUptime((status as any)?.uptime)}</div>
           </div>
           
           <div className="space-y-1">
@@ -178,6 +246,39 @@ export default function UpdatePage() {
         </div>
       </div>
 
+      {/* Fix Permissions */}
+      <div className="rounded-lg bg-card border border-border p-5">
+        <h2 className="font-medium mb-4 flex items-center gap-2">
+          <Shield className="w-4 h-4" /> Berechtigungen
+        </h2>
+        
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Falls Seiten oder Widgets verschwinden, können hier die Datei-Berechtigungen 
+            korrigiert werden. Dies behebt das "readonly database" Problem.
+          </p>
+          
+          <Button
+            onClick={handleFixPermissions}
+            disabled={isFixingPermissions}
+            variant="secondary"
+            className="w-full sm:w-auto"
+          >
+            {isFixingPermissions ? (
+              <>
+                <Wrench className="w-4 h-4 mr-2 animate-spin" />
+                Korrigiere...
+              </>
+            ) : (
+              <>
+                <Wrench className="w-4 h-4 mr-2" />
+                Berechtigungen korrigieren
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
       {/* Update Upload */}
       <div className="rounded-lg bg-card border border-border p-5">
         <h2 className="font-medium mb-4 flex items-center gap-2">
@@ -187,7 +288,8 @@ export default function UpdatePage() {
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
             Lade ein Update-Paket (.tar.gz) hoch um das System zu aktualisieren.
-            Nach der Installation wird das System automatisch neu gestartet.
+            Nach der Installation wird das System automatisch neu gestartet und 
+            die Berechtigungen korrigiert.
           </p>
           
           <div className="flex items-center gap-3">
@@ -226,7 +328,7 @@ export default function UpdatePage() {
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
             Startet den KNX-Server und alle Dienste neu. 
-            Laufende Verbindungen werden kurzzeitig unterbrochen.
+            Die Seite wird danach automatisch neu geladen.
           </p>
           
           <Button

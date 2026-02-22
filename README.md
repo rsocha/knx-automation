@@ -2,7 +2,7 @@
 
 Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home Systemen.
 
-![Version](https://img.shields.io/badge/version-3.0.23-blue)
+![Version](https://img.shields.io/badge/version-3.0.26-blue)
 
 ## 🚀 Features
 
@@ -244,10 +244,37 @@ Siehe `dashboard-src/README.md` für Details.
 
 ## 📋 Changelog
 
+### v3.0.26 (2026-02-22)
+- **Neu:** "Berechtigungen korrigieren" Button auf System-Update Seite
+- **Neu:** Update-Seite zeigt Backend UND Frontend Version
+- **Neu:** Auto-Reload wenn Backend/Frontend Version unterschiedlich
+- **Neu:** Visu-Räume werden mit Backup gespeichert (visu_rooms.json.bak)
+- **Neu:** Bessere Fehlermeldungen beim Speichern
+- **Fix:** Update über Dashboard fixt automatisch Berechtigungen
+- **Fix:** Seite wird nach Update automatisch neu geladen
+- **Fix:** Speicherfehler werden mit Lösungshinweis angezeigt
+
+### v3.0.25 (2026-02-22)
+- **Neu:** Beim Löschen von KOs werden automatisch alle Bindings in Bausteinen entfernt
+- **Fix:** IKO Format wird jetzt korrekt angewendet (neu gebaut)
+
+### v3.0.24 (2026-02-22)
+- **Neu:** IKO Format vereinfacht: `IKO:Nummer_Bausteinname:Port` (statt langer ID)
+- **Neu:** Sensor Card mit Rahmenfarbe, -stärke, -deckkraft und Hintergrund
+- **Neu:** Media Player komplett überarbeitet:
+  - Status: 1=Play, 2=Stop, 3=Pause (Sonos A2)
+  - Mute Button + Status
+  - Vor-/Zurückspulen (±30s)
+  - Lautstärke über Slider steuerbar
+- **Neu:** Switch Card: Badge Position einstellbar (X/Y Offset)
+- **Neu:** Switch Card: Badge ausblendbar
+- **Fix:** Switch Widget flickert nicht mehr (verbesserte optimistic UI)
+- **Fix:** KO-Auswahl: Texte werden nicht mehr abgeschnitten
+- **Fix:** Widget-Dialoge: Scrollbar und Speichern-Button immer sichtbar
+
 ### v3.0.23 (2026-02-22)
 - **Neu:** KO-Adressenauswahl mit Suche beim Hinzufügen/Bearbeiten von Widgets
 - **Fix:** Widget-Dialog passt sich jetzt an Bildschirmgröße an (max 85% Höhe)
-- **Fix:** Alle Dialoge sind scrollbar, Speichern-Button immer sichtbar
 
 ### v3.0.22 (2026-02-22)
 - **Neu:** Media Player mit separaten Play/Pause KOs (ko9=Play, ko14=Pause)

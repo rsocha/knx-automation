@@ -16,7 +16,8 @@
         "variableValues": {
           "var1": "Lightbulb",
           "var2": "Power",
-          "var12": 17
+          "var12": 17,
+          "var25": 13
         },
         "x": 4,
         "y": 24,
@@ -29,7 +30,7 @@
         "label": "Epex Strom",
         "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
         "koBindings": {
-          "ko1": "INT/Epex/A17"
+          "ko1": "IKO:3_EPEX Spot Preis:A17"
         },
         "variableValues": {},
         "x": 8,
@@ -47,6 +48,9 @@
           "ko2": "IKO:FRONIUS/A16"
         },
         "variableValues": {
+          "var1": 0,
+          "var2": 8000,
+          "var15": "PV-Leistung",
           "unit": "W"
         },
         "x": 9,
@@ -69,5 +73,31 @@
         "y": 28
       }
     ]
+  },
+  {
+    "id": "86a96428-1e0c-4847-a93f-bc2b90bdb526",
+    "name": "Musik",
+    "category": "Wohnbereich",
+    "widgets": [
+      {
+        "id": "c2606862-3f34-42a4-bdb1-e5222da413a1",
+        "templateId": "media-player",
+        "label": "Sonos",
+        "roomId": "86a96428-1e0c-4847-a93f-bc2b90bdb526",
+        "koBindings": {
+          "ko4": "IKO:200352_SonosController_5_062328:A7"
+        },
+        "variableValues": {},
+        "x": 0,
+        "y": 23,
+        "widthOverride": 402,
+        "heightOverride": 571
+      }
+    ],
+    "background": {
+      "type": "color",
+      "color": "0,0,0",
+      "opacity": 100
+    }
   }
 ]
