@@ -1,0 +1,40 @@
+{
+  "id": "media-player",
+  "name": "Media Player (Sonos)",
+  "description": "Musikplayer mit Cover, Titel, Steuerung und Lautstärke",
+  "category": "Media",
+  "author": "KNX Automation",
+  "version": "1.0",
+  "width": 340,
+  "height": 480,
+  "render": "mediaPlayer",
+  "inputs": {
+    "ko1": { "name": "Titel", "type": "text", "description": "Aktueller Songtitel" },
+    "ko2": { "name": "Interpret", "type": "text", "description": "Aktueller Interpret" },
+    "ko3": { "name": "Album (Musik A6)", "type": "text", "description": "Album bei Musikwiedergabe" },
+    "ko13": { "name": "Sender (Radio A3)", "type": "text", "description": "Sendername bei Radiowiedergabe" },
+    "ko4": { "name": "Cover URL", "type": "text", "description": "URL zum Albumcover" },
+    "ko5": { "name": "Play/Pause Status", "type": "number", "description": "1=Play, 0=Pause" },
+    "ko6": { "name": "Lautstärke", "type": "number", "description": "0-100" },
+    "ko7": { "name": "Position (s)", "type": "number", "description": "Aktuelle Position in Sekunden" },
+    "ko8": { "name": "Dauer (s)", "type": "number", "description": "Gesamtdauer in Sekunden" },
+    "ko9": { "name": "Play/Pause Schalten", "type": "number", "description": "1=Play, 0=Pause senden" },
+    "ko10": { "name": "Nächster Titel", "type": "number", "description": "1 senden = nächster" },
+    "ko11": { "name": "Vorheriger Titel", "type": "number", "description": "1 senden = vorheriger" },
+    "ko12": { "name": "Lautstärke Setzen", "type": "number", "description": "0-100 senden" }
+  },
+  "variables": {
+    "var1": { "name": "Test-Titel", "type": "text", "default": "Awesome Title" },
+    "var2": { "name": "Test-Interpret", "type": "text", "default": "Famous Artist" },
+    "var3": { "name": "Test-Album", "type": "text", "default": "Well known album" },
+    "var4": { "name": "Akzentfarbe (R,G,B)", "type": "color", "default": "180,140,100" },
+    "var5": { "name": "Hintergrundfarbe (R,G,B)", "type": "color", "default": "30,28,26" },
+    "var6": { "name": "Hintergrund Deckkraft (%)", "type": "number", "default": 95 },
+    "var7": { "name": "Rahmenfarbe (R,G,B)", "type": "color", "default": "255,255,255" },
+    "var8": { "name": "Rahmen Deckkraft (%)", "type": "number", "default": 8 },
+    "var12": { "name": "Rahmenstärke (px)", "type": "number", "default": 1.5 },
+    "var9": { "name": "Textfarbe hell", "type": "bool", "default": "1" },
+    "var10": { "name": "Border-Radius (px)", "type": "number", "default": 24 },
+    "var11": { "name": "Cover Border-Radius (px)", "type": "number", "default": 16 }
+  }
+}

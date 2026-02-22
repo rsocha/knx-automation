@@ -2,7 +2,7 @@
 
 Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home Systemen.
 
-![Version](https://img.shields.io/badge/version-3.0.19-blue)
+![Version](https://img.shields.io/badge/version-3.0.21-blue)
 
 ## 🚀 Features
 
@@ -154,6 +154,8 @@ Nach dem Import kannst du die KO-Adressen (Status + Schalten) zuweisen.
 | strompreis-chart | 24h EPEX Preischart | ko1: JSON Array |
 | markdown-card | Titel mit Icon/Emoji | - (nur Label) |
 | compass-speedometer | Kompass mit Geschwindigkeit | ko1: Speed, ko2: Richtung blau, ko3: Richtung grau |
+| media-player | Sonos Musikplayer | ko1-13: Titel, Artist, Cover, Controls, Volume |
+| shape-separator | Linie/Form für Layout | - (nur visuelle Trennung) |
 | simple-value | Dynamische Wertanzeige | ko1: Wert |
 | simple-toggle | Dynamischer Schalter | ko1: Status, ko2: Schalten |
 
@@ -241,6 +243,18 @@ Siehe `dashboard-src/README.md` für Details.
 - `POST /api/v1/logic/import` - Logik wiederherstellen
 
 ## 📋 Changelog
+
+### v3.0.21 (2026-02-22)
+- **Neu:** Visueller ColorPicker für Farbauswahl in VSE Widgets
+- **Fix:** Version-Anzeige in System-Update Seite
+- **Fix:** Datenbank readonly Problem dokumentiert
+
+### v3.0.20 (2026-02-22)
+- **Neu:** Media Player Widget (Sonos) mit Cover, Steuerung, Lautstärke
+- **Neu:** Shape Separator Widget (Linien, Rechtecke, Kreise)
+- **Neu:** PWA Support - Fullscreen ohne Adressleiste auf iPhone/Android
+- **Neu:** Safe-Area-Insets für Notch-Bereich
+- README aktualisiert
 
 ### v3.0.19 (2026-02-22)
 - **Fix:** Gauge-Widget min=0 funktioniert jetzt (vorher Fallback auf 960)

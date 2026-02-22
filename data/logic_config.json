@@ -49,8 +49,20 @@
       "block_type": "SonosController",
       "page_id": "page_bd4d50d7",
       "enabled": true,
-      "input_bindings": {},
-      "output_bindings": {},
+      "input_bindings": {
+        "E4": "IKO:200352_SonosController_5_062328:E4",
+        "E5": "IKO:200352_SonosController_5_062328:E5",
+        "E6": "IKO:200352_SonosController_5_062328:E6",
+        "E9": "IKO:200352_SonosController_5_062328:E9"
+      },
+      "output_bindings": {
+        "A3": "IKO:200352_SonosController_5_062328:A3",
+        "A4": "IKO:200352_SonosController_5_062328:A4",
+        "A5": "IKO:200352_SonosController_5_062328:A5",
+        "A6": "IKO:200352_SonosController_5_062328:A6",
+        "A7": "IKO:200352_SonosController_5_062328:A7",
+        "A15": "IKO:200352_SonosController_5_062328:A15"
+      },
       "input_values": {
         "E1": true,
         "E2": 1,
@@ -131,7 +143,7 @@
       "input_values": {
         "E1": true,
         "E2": 300,
-        "E3": "557d033d29977ed2858b4629|cce4e112aa1ba847e5e0158476dc5635",
+        "E3": "557d033d29977ed2858b4629|69804b7d8feae7f25533666e55705bdc",
         "E4": "",
         "E5": false
       }

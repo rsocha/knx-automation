@@ -7,6 +7,8 @@ import VseSensorCard from "./VseSensorCard";
 import VseMarkdownCard from "./VseMarkdownCard";
 import VseDynamicWidget from "./VseDynamicWidget";
 import VseCompassSpeedometer from "./VseCompassSpeedometer";
+import VseMediaPlayer from "./VseMediaPlayer";
+import VseShapeSeparator from "./VseShapeSeparator";
 
 interface Props {
   instance: VseWidgetInstance;
@@ -23,6 +25,8 @@ const RENDERERS: Record<string, React.ComponentType<Props>> = {
   sensorCard: VseSensorCard,
   markdownCard: VseMarkdownCard,
   compassSpeedometer: VseCompassSpeedometer,
+  mediaPlayer: VseMediaPlayer,
+  shapeSeparator: VseShapeSeparator,
   // Generic/dynamic renderer for custom widgets
   dynamic: VseDynamicWidget,
   generic: VseDynamicWidget,

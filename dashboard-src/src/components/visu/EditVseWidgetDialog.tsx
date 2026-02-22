@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ColorPicker from "@/components/ui/color-picker";
 import type { VseTemplate, VseWidgetInstance } from "@/types/vse";
 
 interface Props {
@@ -175,11 +176,10 @@ export default function EditVseWidgetDialog({ open, onOpenChange, widget, templa
                         className="bg-secondary border-border h-7 text-xs mt-1"
                       />
                     ) : variable.type === "color" ? (
-                      <Input
-                        value={variableValues[key] ?? ""}
-                        onChange={(e) => setVariableValues((prev) => ({ ...prev, [key]: e.target.value }))}
-                        placeholder="R,G,B"
-                        className="bg-secondary border-border h-7 text-xs font-mono mt-1"
+                      <ColorPicker
+                        value={variableValues[key] ?? variable.default ?? "255,255,255"}
+                        onChange={(val) => setVariableValues((prev) => ({ ...prev, [key]: val }))}
+                        className="mt-1"
                       />
                     ) : (
                       <Input

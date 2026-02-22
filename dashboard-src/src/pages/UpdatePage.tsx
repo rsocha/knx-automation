@@ -144,7 +144,7 @@ export default function UpdatePage() {
             <div className="text-xs text-muted-foreground flex items-center gap-1">
               <HardDrive className="w-3 h-3" /> Version
             </div>
-            <div className="font-mono font-medium">{status?.version || "3.0.0"}</div>
+            <div className="font-mono font-medium">{status?.version || "–"}</div>
           </div>
           
           <div className="space-y-1">

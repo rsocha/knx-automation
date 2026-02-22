@@ -13,6 +13,8 @@ const BUILTIN_TEMPLATES: string[] = [
   "/static/vse/simple-value.vse.json",
   "/static/vse/simple-toggle.vse.json",
   "/static/vse/compass-speedometer.vse.json",
+  "/static/vse/media-player.vse.json",
+  "/static/vse/shape-separator.vse.json",
 ];
 
 const TITLE_TEMPLATE: VseTemplate = {
