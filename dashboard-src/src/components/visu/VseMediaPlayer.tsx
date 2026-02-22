@@ -61,8 +61,23 @@ export default function VseMediaPlayer({ instance, template }: Props) {
   };
 
   const handlePlayPause = () => {
-    const addr = instance.koBindings["ko9"];
-    if (addr) sendCommand({ address: addr, value: isPlaying ? 0 : 1 });
+    // Check if separate Play (ko9) and Pause (ko14) KOs are configured
+    const playAddr = instance.koBindings["ko9"];
+    const pauseAddr = instance.koBindings["ko14"];
+    
+    if (playAddr && pauseAddr) {
+      // Separate KOs: Send 1 to the appropriate address
+      if (isPlaying) {
+        // Currently playing -> send Pause
+        sendCommand({ address: pauseAddr, value: 1 });
+      } else {
+        // Currently paused -> send Play
+        sendCommand({ address: playAddr, value: 1 });
+      }
+    } else if (playAddr) {
+      // Single KO: Toggle (0/1)
+      sendCommand({ address: playAddr, value: isPlaying ? 0 : 1 });
+    }
   };
 
   const handlePrev = () => {

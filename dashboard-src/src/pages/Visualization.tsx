@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { LayoutGrid, Plus, Monitor, Settings2, FileUp, Smartphone, Cloud, CloudOff, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import type { VisuRoom, VseTemplate, VseWidgetInstance } from "@/types/vse";
+import type { VisuRoom, VseTemplate, VseWidgetInstance, DEFAULT_CATEGORIES } from "@/types/vse";
 import VisuPageTree from "@/components/visu/VisuPageTree";
 import DeviceFrame from "@/components/visu/DeviceFrame";
 import DraggableWidget from "@/components/visu/DraggableWidget";
@@ -11,10 +11,22 @@ import AddRoomDialog from "@/components/visu/AddRoomDialog";
 import AddVseWidgetDialog from "@/components/visu/AddVseWidgetDialog";
 import EditVseWidgetDialog from "@/components/visu/EditVseWidgetDialog";
 import ImportHAYamlDialog from "@/components/visu/ImportHAYamlDialog";
+import RoomSettingsDialog, { getBackgroundStyle } from "@/components/visu/RoomSettingsDialog";
 import { fetchVisuRooms, saveVisuRooms } from "@/services/knxApi";
 import { generateUUID } from "@/lib/uuid";
 
 const ROOMS_KEY = "knx_visu_rooms";
+const CATEGORIES_KEY = "knx_visu_categories";
+
+// Default categories
+const INITIAL_CATEGORIES = [
+  "Wohnbereich",
+  "Schlafbereich", 
+  "Außenbereich",
+  "Küche",
+  "Technik",
+  "Sonstiges"
+];
 
 // Built-in templates
 const BUILTIN_TEMPLATES: string[] = [
@@ -71,9 +83,32 @@ export default function Visualization() {
   const [editMode, setEditMode] = useState(false);
   const [showDevice, setShowDevice] = useState(true);
   const [editingWidget, setEditingWidget] = useState<VseWidgetInstance | null>(null);
+  const [editingRoom, setEditingRoom] = useState<VisuRoom | null>(null);
   const [syncStatus, setSyncStatus] = useState<"synced" | "syncing" | "error" | "loading">("loading");
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Custom categories
+  const [categories, setCategories] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(CATEGORIES_KEY);
+      return saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
+    } catch {
+      return INITIAL_CATEGORIES;
+    }
+  });
+
+  // Save categories to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
+  }, [categories]);
+
+  const addCategory = useCallback((category: string) => {
+    if (!categories.includes(category)) {
+      setCategories(prev => [...prev, category]);
+      toast.success(`Kategorie "${category}" hinzugefügt`);
+    }
+  }, [categories]);
 
   // Load rooms from server
   const { data: serverRooms, isLoading: isLoadingRooms, error: roomsError, refetch: refetchRooms } = useQuery({
@@ -226,6 +261,13 @@ export default function Visualization() {
     toast.success("Raum gelöscht");
   }, []);
 
+  const updateRoom = useCallback((updatedRoom: VisuRoom) => {
+    setRooms((prev) =>
+      prev.map((r) => (r.id === updatedRoom.id ? updatedRoom : r))
+    );
+    toast.success(`Raum "${updatedRoom.name}" aktualisiert`);
+  }, []);
+
   // Widget operations
   const addWidget = useCallback((widget: VseWidgetInstance) => {
     if (!activeRoomId) return;
@@ -346,7 +388,10 @@ export default function Visualization() {
     }
 
     return (
-      <div className="relative w-full h-full min-h-[400px]">
+      <div 
+        className="relative w-full h-full min-h-[400px]"
+        style={getBackgroundStyle(activeRoom.background)}
+      >
         {activeRoom.widgets.map((widget) => {
           const template = templates.find((t) => t.id === widget.templateId);
           if (!template) {
@@ -444,6 +489,7 @@ export default function Visualization() {
           onSelectRoom={setActiveRoomId}
           onAddRoom={() => setShowAddRoom(true)}
           onDeleteRoom={deleteRoom}
+          onEditRoom={(room) => setEditingRoom(room)}
         />
 
         {/* Main content */}
@@ -457,7 +503,13 @@ export default function Visualization() {
       </div>
 
       {/* Dialogs */}
-      <AddRoomDialog open={showAddRoom} onOpenChange={setShowAddRoom} onAdd={addRoom} />
+      <AddRoomDialog 
+        open={showAddRoom} 
+        onOpenChange={setShowAddRoom} 
+        onAdd={addRoom}
+        categories={categories}
+        onAddCategory={addCategory}
+      />
       <AddVseWidgetDialog
         open={showAddWidget}
         onOpenChange={setShowAddWidget}
@@ -474,6 +526,15 @@ export default function Visualization() {
         />
       )}
       <ImportHAYamlDialog open={showImport} onOpenChange={setShowImport} onImport={importWidgets} />
+      <RoomSettingsDialog
+        open={!!editingRoom}
+        onOpenChange={(open) => { if (!open) setEditingRoom(null); }}
+        room={editingRoom}
+        categories={categories}
+        onSave={updateRoom}
+        onDelete={deleteRoom}
+        onAddCategory={addCategory}
+      />
     </div>
   );
 }

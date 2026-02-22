@@ -2,7 +2,7 @@
 
 Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home Systemen.
 
-![Version](https://img.shields.io/badge/version-3.0.21-blue)
+![Version](https://img.shields.io/badge/version-3.0.22-blue)
 
 ## 🚀 Features
 
@@ -243,6 +243,14 @@ Siehe `dashboard-src/README.md` für Details.
 - `POST /api/v1/logic/import` - Logik wiederherstellen
 
 ## 📋 Changelog
+
+### v3.0.22 (2026-02-22)
+- **Neu:** Media Player mit separaten Play/Pause KOs (ko9=Play, ko14=Pause)
+- **Neu:** Eigene Kategorien hinzufügen und verwalten
+- **Neu:** Raum-Einstellungen bearbeiten (Hintergrundfarbe, Farbverlauf, Bilder)
+- **Neu:** Raum-Icons (Emoji oder MDI)
+- **Fix:** Widget-Einstellungen werden korrekt gespeichert (min/max bei Gauge)
+- Vorbereitung für Multi-Device Visualisierungen
 
 ### v3.0.21 (2026-02-22)
 - **Neu:** Visueller ColorPicker für Farbauswahl in VSE Widgets

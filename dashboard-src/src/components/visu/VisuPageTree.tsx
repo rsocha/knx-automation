@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ChevronRight, Home, Sofa, BedDouble, UtensilsCrossed, TreePine, Plus, Trash2, FolderOpen } from "lucide-react";
+import { ChevronRight, Home, Sofa, BedDouble, UtensilsCrossed, TreePine, Plus, Trash2, FolderOpen, Settings2, Cpu, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -8,12 +8,16 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import type { VisuRoom } from "@/types/vse";
+import MdiIcon from "./MdiIcon";
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
   Wohnbereich: Sofa,
   Schlafbereich: BedDouble,
   Küche: UtensilsCrossed,
   Außen: TreePine,
+  Außenbereich: TreePine,
+  Technik: Cpu,
+  Sonstiges: Sparkles,
   Allgemein: Home,
 };
 
@@ -23,9 +27,10 @@ interface Props {
   onSelectRoom: (roomId: string) => void;
   onAddRoom: () => void;
   onDeleteRoom: (roomId: string) => void;
+  onEditRoom?: (room: VisuRoom) => void;
 }
 
-export default function VisuPageTree({ rooms, activeRoomId, onSelectRoom, onAddRoom, onDeleteRoom }: Props) {
+export default function VisuPageTree({ rooms, activeRoomId, onSelectRoom, onAddRoom, onDeleteRoom, onEditRoom }: Props) {
   const grouped = useMemo(() => {
     const map: Record<string, VisuRoom[]> = {};
     rooms.forEach((r) => {
@@ -35,6 +40,18 @@ export default function VisuPageTree({ rooms, activeRoomId, onSelectRoom, onAddR
     });
     return map;
   }, [rooms]);
+
+  const renderRoomIcon = (room: VisuRoom) => {
+    if (room.icon) {
+      // Check if it's an emoji (starts with emoji characters)
+      if (/^[\p{Emoji}]/u.test(room.icon)) {
+        return <span className="text-xs">{room.icon}</span>;
+      }
+      // Otherwise it's an MDI icon name
+      return <MdiIcon name={room.icon} size={12} />;
+    }
+    return <Home className="w-3 h-3 shrink-0" />;
+  };
 
   return (
     <div className="w-52 border-r border-border bg-card flex flex-col shrink-0">
@@ -73,15 +90,28 @@ export default function VisuPageTree({ rooms, activeRoomId, onSelectRoom, onAddR
                       }`}
                       onClick={() => onSelectRoom(room.id)}
                     >
-                      <Home className="w-3 h-3 shrink-0" />
+                      {renderRoomIcon(room)}
                       <span className="truncate flex-1">{room.name}</span>
                       <span className="text-[9px] text-muted-foreground font-mono">{room.widgets.length}</span>
+                      {onEditRoom && (
+                        <button
+                          className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-secondary rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditRoom(room);
+                          }}
+                          title="Raum bearbeiten"
+                        >
+                          <Settings2 className="w-3 h-3 text-muted-foreground" />
+                        </button>
+                      )}
                       <button
-                        className="opacity-0 group-hover:opacity-100"
+                        className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-destructive/10 rounded"
                         onClick={(e) => {
                           e.stopPropagation();
                           onDeleteRoom(room.id);
                         }}
+                        title="Raum löschen"
                       >
                         <Trash2 className="w-3 h-3 text-destructive" />
                       </button>
