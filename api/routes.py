@@ -39,7 +39,7 @@ class PageCreate(BaseModel):
 
 @router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "3.0.12"}
+    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "3.0.18"}
 
 # ============ LICENSE SYSTEM ============
 LICENSE_FILE = Path("data/license.json")
@@ -223,7 +223,7 @@ async def export_visu_config():
     """Export complete visu configuration as downloadable JSON"""
     try:
         export_data = {
-            "version": "3.0.12",
+            "version": "3.0.18",
             "exported_at": datetime.now().isoformat(),
             "rooms": [],
             "config": {}
@@ -848,7 +848,7 @@ async def get_status():
             "connection_type": knx_manager._connection_type,
             "group_address_count": await db_manager.get_group_address_count(),
             "timestamp": datetime.now().isoformat(),
-            "version": "3.0.12"
+            "version": "3.0.18"
         }
     except Exception as e:
         logger.error(f"Status error: {e}")
@@ -1471,6 +1471,76 @@ async def restart_system():
 
 
 # ============ LOGIC BLOCKS API ============
+
+@router.get("/logic/export")
+async def export_logic_config():
+    """Export all logic blocks and pages as downloadable JSON"""
+    try:
+        export_data = {
+            "version": "3.0.18",
+            "exported_at": datetime.now().isoformat(),
+            "blocks": logic_manager.get_all_blocks(),
+            "pages": list(logic_manager._pages.values()) if hasattr(logic_manager, '_pages') else []
+        }
+        
+        return StreamingResponse(
+            iter([json.dumps(export_data, ensure_ascii=False, indent=2, default=str)]),
+            media_type="application/json",
+            headers={"Content-Disposition": f"attachment; filename=logic-backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}.json"}
+        )
+    except Exception as e:
+        logger.error(f"Error exporting logic: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/logic/import")
+async def import_logic_config(file: UploadFile = File(...)):
+    """Import logic blocks from JSON file"""
+    try:
+        content = await file.read()
+        data = json.loads(content.decode('utf-8'))
+        
+        blocks_imported = 0
+        
+        # Import blocks
+        if "blocks" in data:
+            for block_data in data["blocks"]:
+                try:
+                    block_type = block_data.get("block_type")
+                    if not block_type:
+                        continue
+                    
+                    # Create the block
+                    page_id = block_data.get("page_id")
+                    block = await logic_manager.create_block_async(block_type, page_id=page_id)
+                    
+                    # Restore position if available
+                    if "position" in block_data:
+                        block.position = block_data["position"]
+                    
+                    # Restore input bindings
+                    if "input_bindings" in block_data:
+                        for input_key, address in block_data["input_bindings"].items():
+                            if address:
+                                await logic_manager.bind_input_async(block.instance_id, input_key, address)
+                    
+                    # Restore output bindings
+                    if "output_bindings" in block_data:
+                        for output_key, address in block_data["output_bindings"].items():
+                            if address:
+                                await logic_manager.bind_output_async(block.instance_id, output_key, address)
+                    
+                    blocks_imported += 1
+                except Exception as e:
+                    logger.warning(f"Could not import block: {e}")
+        
+        logger.info(f"Imported {blocks_imported} logic blocks")
+        return {"status": "imported", "blocks": blocks_imported}
+        
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Ungültige JSON-Datei")
+    except Exception as e:
+        logger.error(f"Error importing logic: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/logic/blocks/available")
 async def get_available_blocks():

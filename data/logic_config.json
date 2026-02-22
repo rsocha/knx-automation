@@ -55,12 +55,12 @@
         "E1": true,
         "E2": 1,
         "E3": "192.168.0.15",
-        "E4": true,
-        "E5": false,
+        "E4": false,
+        "E5": true,
         "E6": false,
         "E7": false,
         "E8": false,
-        "E9": -1,
+        "E9": 5,
         "E10": -1,
         "E11": -100,
         "E12": -100,
@@ -131,7 +131,7 @@
       "input_values": {
         "E1": true,
         "E2": 300,
-        "E3": "557d033d29977ed2858b4629|3cdd737f703cb7a0740017fc2c4c0405",
+        "E3": "557d033d29977ed2858b4629|cce4e112aa1ba847e5e0158476dc5635",
         "E4": "",
         "E5": false
       }
@@ -164,7 +164,8 @@
       "output_bindings": {
         "A4": "IKO:FRONIUS/A4",
         "A16": "IKO:FRONIUS/A16",
-        "A5": "IKO:FRONIUS/A5"
+        "A5": "IKO:FRONIUS/A5",
+        "A8": "IKO:20030_FroniusGen24_4_111048:A8"
       },
       "input_values": {
         "E1": true,

@@ -1,0 +1,87 @@
+{
+  "id": "strompreis-chart",
+  "name": "Strompreis Chart",
+  "description": "24h EPEX Stundenpreise mit farbcodierten Balken",
+  "category": "energy",
+  "author": "KNX Automation",
+  "version": "1.1",
+  "width": 400,
+  "height": 300,
+  "render": "strompreisChart",
+  "inputs": {
+    "ko1": {
+      "name": "JSON Preisdaten",
+      "type": "text",
+      "description": "Array mit {t: unix_timestamp, p: preis_ct_kwh}"
+    }
+  },
+  "variables": {
+    "var1": {
+      "name": "Titel",
+      "type": "text",
+      "default": "Stundenpreise heute"
+    },
+    "var2": {
+      "name": "Dezimalstellen",
+      "type": "number",
+      "default": 2
+    },
+    "var3": {
+      "name": "Hintergrund transparent",
+      "type": "bool",
+      "default": "0"
+    },
+    "var4": {
+      "name": "Border Radius (px)",
+      "type": "number",
+      "default": 16
+    },
+    "var5": {
+      "name": "Jetzt Label",
+      "type": "text",
+      "default": "Jetzt"
+    },
+    "var6": {
+      "name": "Jetzt Farbe (RGB)",
+      "type": "text",
+      "default": "52,152,219"
+    },
+    "var7": {
+      "name": "HOCH ab (ct/kWh)",
+      "type": "number",
+      "default": 20
+    },
+    "var8": {
+      "name": "MITTEL ab (ct/kWh)",
+      "type": "number",
+      "default": 15
+    },
+    "var9": {
+      "name": "Farbe NIEDRIG (RGB)",
+      "type": "text",
+      "default": "76,175,80"
+    },
+    "var10": {
+      "name": "Farbe MITTEL (RGB)",
+      "type": "text",
+      "default": "255,193,7"
+    },
+    "var11": {
+      "name": "Farbe HOCH (RGB)",
+      "type": "text",
+      "default": "244,67,54"
+    },
+    "var12": {
+      "name": "Glow-Effekt",
+      "type": "bool",
+      "default": "1"
+    },
+    "var13": {
+      "name": "Daten sind echte UTC",
+      "type": "bool",
+      "default": "0"
+    }
+  },
+  "format": "json",
+  "converted": true
+}

@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 220 20% 10%;
+    --foreground: 210 20% 92%;
+
+    --card: 220 18% 13%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 18% 13%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 142 60% 45%;
+    --primary-foreground: 220 20% 10%;
+
+    --secondary: 220 16% 18%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 220 14% 16%;
+    --muted-foreground: 215 12% 55%;
+
+    --accent: 200 80% 55%;
+    --accent-foreground: 220 20% 10%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 210 20% 95%;
+
+    --border: 220 14% 20%;
+    --input: 220 14% 20%;
+    --ring: 142 60% 45%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 220 20% 8%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 142 60% 45%;
+    --sidebar-primary-foreground: 220 20% 10%;
+    --sidebar-accent: 220 16% 15%;
+    --sidebar-accent-foreground: 210 20% 85%;
+    --sidebar-border: 220 14% 18%;
+    --sidebar-ring: 142 60% 45%;
+
+    /* KNX specific tokens */
+    --knx-online: 142 60% 45%;
+    --knx-offline: 0 70% 55%;
+    --knx-warning: 38 90% 55%;
+    --knx-info: 200 80% 55%;
+    --knx-purple: 270 60% 60%;
+    --knx-glow: 142 60% 45%;
+
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-sans: 'Inter', system-ui, sans-serif;
+  }
+
+  .dark {
+    /* Same as root - this is a dark-first app */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+
+  code, .mono {
+    font-family: var(--font-mono);
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Glow effects */
+.glow-green {
+  box-shadow: 0 0 12px hsl(var(--knx-online) / 0.3);
+}
+.glow-red {
+  box-shadow: 0 0 12px hsl(var(--knx-offline) / 0.3);
+}
+
+/* KNX status indicator pulse */
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.status-pulse {
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+/* ReactFlow edge selection */
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: hsl(50, 100%, 55%) !important;
+  stroke-width: 3px !important;
+}
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: hsl(50, 100%, 65%) !important;
+  stroke-width: 2.5px !important;
+}

@@ -1,0 +1,102 @@
+{
+  "id": "compass-speedometer",
+  "name": "Compass Speedometer",
+  "description": "Kompass mit Geschwindigkeitsanzeige und Richtungspfeilen",
+  "category": "Sensoren",
+  "author": "EDOMI VSE",
+  "version": "1.0",
+  "width": 200,
+  "height": 200,
+  "render": "compassSpeedometer",
+  "inputs": {
+    "ko1": {
+      "name": "Geschwindigkeit",
+      "type": "number"
+    },
+    "ko2": {
+      "name": "Richtung Blau (Grad)",
+      "type": "number"
+    },
+    "ko3": {
+      "name": "Richtung Grau (Grad)",
+      "type": "number"
+    }
+  },
+  "variables": {
+    "var1": {
+      "name": "Test-Geschwindigkeit",
+      "type": "number",
+      "default": 12.6
+    },
+    "var2": {
+      "name": "Test-Richtung",
+      "type": "number",
+      "default": 157
+    },
+    "var3": {
+      "name": "Dezimalstellen",
+      "type": "number",
+      "default": 1
+    },
+    "var4": {
+      "name": "Zeiger aktiv (R,G,B)",
+      "type": "color",
+      "default": "100,149,237"
+    },
+    "var5": {
+      "name": "Zeiger inaktiv (R,G,B)",
+      "type": "color",
+      "default": "100,100,100"
+    },
+    "var6": {
+      "name": "Richtung anzeigen",
+      "type": "bool",
+      "default": "1"
+    },
+    "var7": {
+      "name": "Kompass-Größe (%)",
+      "type": "number",
+      "default": 95
+    },
+    "var8": {
+      "name": "HIGH ab",
+      "type": "number",
+      "default": 2000
+    },
+    "var9": {
+      "name": "MEDIUM ab",
+      "type": "number",
+      "default": 500
+    },
+    "var10": {
+      "name": "Rahmen HIGH (R,G,B)",
+      "type": "color",
+      "default": "255,235,59"
+    },
+    "var11": {
+      "name": "Rahmen MEDIUM (R,G,B)",
+      "type": "color",
+      "default": "255,193,7"
+    },
+    "var12": {
+      "name": "Rahmen LOW (R,G,B)",
+      "type": "color",
+      "default": "76,175,80"
+    },
+    "var13": {
+      "name": "Rahmen OFF (R,G,B)",
+      "type": "color",
+      "default": "158,158,158"
+    },
+    "var14": {
+      "name": "Test-Richtung Grau",
+      "type": "number",
+      "default": 337
+    },
+    "unit": {
+      "name": "Einheit",
+      "type": "text",
+      "default": "km/h"
+    }
+  }
+}

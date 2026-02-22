@@ -2,7 +2,7 @@
 
 Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home Systemen.
 
-![Version](https://img.shields.io/badge/version-3.0.11-blue)
+![Version](https://img.shields.io/badge/version-3.0.15-blue)
 
 ## 🚀 Features
 
@@ -35,23 +35,24 @@ Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home S
 
 ```
 /opt/knx-automation/
-├── static/
+├── static/                    # Kompiliertes Frontend
 │   ├── index.html            # React Dashboard
-│   ├── index-classic.html    # Klassisches Dashboard (Backup)
 │   ├── assets/               # JS/CSS Bundles
-│   └── vse/                  # VSE Widget Templates
-│       ├── switch-card.vse.json
-│       ├── sensor-card.vse.json
-│       ├── gauge-barometer.vse.json
-│       ├── strompreis-chart.vse.json
-│       └── markdown-card.vse.json
+│   └── vse/                  # Widget Templates (JSON)
+├── dashboard-src/             # React Source Code
+│   ├── src/
+│   │   ├── components/visu/  # Widget-Komponenten
+│   │   ├── pages/            # Seiten
+│   │   └── services/         # API-Funktionen
+│   ├── package.json
+│   └── README.md             # Entwickler-Doku
 ├── data/
 │   ├── visu_rooms.json       # Visualisierungs-Räume
 │   └── knx.db                # SQLite Datenbank
-├── api/routes.py
-├── knx/connection.py
-├── logic/manager.py
-└── main.py
+├── api/routes.py              # Backend API
+├── main.py                    # FastAPI Server
+├── install.sh                 # Installations-Script
+└── README.md                  # Diese Datei
 ```
 
 ## 🔧 Installation
@@ -165,6 +166,10 @@ Einfach ein JSON-Template erstellen und hochladen - das Widget wird automatisch 
 - Jeder unbekannte render-Typ nutzt ebenfalls den dynamischen Renderer
 
 ### Option 2: Custom React-Komponente (für komplexe Widgets)
+
+> ⚠️ **Hinweis:** Dieser Abschnitt ist nur für fortgeschrittene Entwickler!  
+> Die Datei `VseMyWidget.tsx` ist nur ein **Beispiel** und nicht im Paket enthalten.  
+> Für die meisten Widgets reicht Option 1 (dynamische Widgets) völlig aus!
 
 ```json
 {

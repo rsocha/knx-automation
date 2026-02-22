@@ -27,7 +27,7 @@ class BufferHandler(logging.Handler):
 
 # Configure logging BEFORE importing other modules
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[logging.StreamHandler()]
 )
@@ -35,9 +35,13 @@ logging.basicConfig(
 # Add buffer handler to root logger
 buffer_handler = BufferHandler()
 buffer_handler.setFormatter(logging.Formatter('%(name)s - %(message)s'))
-buffer_handler.setLevel(logging.DEBUG)
+buffer_handler.setLevel(logging.INFO)
 logging.getLogger().addHandler(buffer_handler)
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
+
+# Reduce noise from libraries
+logging.getLogger("aiosqlite").setLevel(logging.WARNING)
+logging.getLogger("xknx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 logger.info("=== KNX Automation Starting ===")
@@ -88,32 +92,67 @@ async def lifespan(app: FastAPI):
     await logic_manager.shutdown()
     await knx_manager.disconnect()
 
-app = FastAPI(title="KNX Automation System", version="3.0.12", lifespan=lifespan)
+app = FastAPI(title="KNX Automation System", version="3.0.18", lifespan=lifespan)
 app.include_router(router, prefix="/api/v1")
 
 dashboard_path = Path(__file__).parent / "static"
-if dashboard_path.exists():
-    app.mount("/static", StaticFiles(directory=str(dashboard_path)), name="static")
+
+# SPA Routes - serve index.html for all frontend routes
+SPA_ROUTES = ["/", "/panel", "/visu", "/logic", "/log", "/settings", "/update"]
 
 @app.get("/")
 async def root():
-    index_path = Path(__file__).parent / "static" / "index.html"
+    index_path = dashboard_path / "index.html"
     if index_path.exists():
         return FileResponse(index_path)
     return {"message": "KNX Automation API", "docs": "/docs"}
 
-# Catch-all route for SPA - must be AFTER all other routes
-@app.get("/{full_path:path}")
-async def spa_catch_all(full_path: str):
-    """Serve index.html for all SPA routes (React Router)"""
-    # Don't catch API routes or static files
-    if full_path.startswith("api/") or full_path.startswith("static/"):
-        return {"detail": "Not Found"}
-    
-    index_path = Path(__file__).parent / "static" / "index.html"
+@app.get("/panel")
+async def panel():
+    index_path = dashboard_path / "index.html"
+    logger.info(f"[PANEL] Requested, dashboard_path={dashboard_path}, exists={index_path.exists()}")
+    if index_path.exists():
+        return FileResponse(index_path)
+    return {"detail": "Not Found", "path": str(index_path), "exists": index_path.exists()}
+
+@app.get("/visu")
+async def visu():
+    index_path = dashboard_path / "index.html"
     if index_path.exists():
         return FileResponse(index_path)
     return {"detail": "Not Found"}
+
+@app.get("/logic")
+async def logic():
+    index_path = dashboard_path / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    return {"detail": "Not Found"}
+
+@app.get("/log")
+async def log():
+    index_path = dashboard_path / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    return {"detail": "Not Found"}
+
+@app.get("/settings")
+async def settings():
+    index_path = dashboard_path / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    return {"detail": "Not Found"}
+
+@app.get("/update")
+async def update():
+    index_path = dashboard_path / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    return {"detail": "Not Found"}
+
+# Mount static files AFTER explicit routes
+if dashboard_path.exists():
+    app.mount("/static", StaticFiles(directory=str(dashboard_path)), name="static")
 
 if __name__ == "__main__":
     import uvicorn
