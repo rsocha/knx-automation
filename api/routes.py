@@ -20,7 +20,7 @@ from logic.manager import ALL_BUILTIN_BLOCKS
 logger = logging.getLogger(__name__)
 
 # Single source of truth for version — update HERE only
-APP_VERSION = "3.1.9"
+APP_VERSION = "3.2.0"
 router = APIRouter()
 
 
@@ -1280,22 +1280,29 @@ async def reconnect_knx_gateway():
 
 @router.get("/system/backup")
 async def create_backup():
-    """Create full system backup as JSON"""
+    """Create comprehensive system backup as JSON — includes all config, blocks, visu, DB"""
     from fastapi.responses import Response
+    import base64
     
     try:
-        # Collect all data
+        base_dir = Path(__file__).parent.parent
+        data_dir = base_dir / 'data'
+        
         backup_data = {
-            'version': '1.4.1',
+            'backup_version': 2,
+            'app_version': APP_VERSION,
             'created': datetime.now().isoformat(),
             'group_addresses': [],
             'logic_config': None,
             'block_positions': {},
-            'visu_config': {},
-            'settings': {}
+            'visu_rooms': None,
+            'custom_blocks': {},
+            'vse_templates': {},
+            'settings': {},
+            'database_b64': None,
         }
         
-        # Get all group addresses
+        # 1. Group addresses from DB
         addresses = await db_manager.get_all_group_addresses()
         backup_data['group_addresses'] = [
             {
@@ -1310,26 +1317,47 @@ async def create_backup():
             for a in addresses
         ]
         
-        # Get logic config
-        config_file = Path(__file__).parent.parent / 'data' / 'logic_config.json'
+        # 2. Logic config (blocks, pages, bindings)
+        config_file = data_dir / 'logic_config.json'
         if config_file.exists():
             with open(config_file, 'r') as f:
                 backup_data['logic_config'] = json.load(f)
         
-        # Get block positions
-        positions_file = Path(__file__).parent.parent / 'data' / 'block_positions.json'
+        # 3. Block positions
+        positions_file = data_dir / 'block_positions.json'
         if positions_file.exists():
             with open(positions_file, 'r') as f:
                 backup_data['block_positions'] = json.load(f)
         
-        # Get visu config
-        visu_file = Path(__file__).parent.parent / 'data' / 'visu_config.json'
+        # 4. Visu rooms (widgets, categories)
+        visu_file = data_dir / 'visu_rooms.json'
         if visu_file.exists():
             with open(visu_file, 'r') as f:
-                backup_data['visu_config'] = json.load(f)
+                backup_data['visu_rooms'] = json.load(f)
         
-        # Get KNX settings
-        env_file = Path(__file__).parent.parent / '.env'
+        # 5. Custom blocks (.py files) — stored as base64
+        custom_dir = data_dir / 'custom_blocks'
+        if custom_dir.exists():
+            for py_file in custom_dir.glob('*.py'):
+                try:
+                    content = py_file.read_text(encoding='utf-8')
+                    backup_data['custom_blocks'][py_file.name] = content
+                    logger.info(f"Backup: custom block {py_file.name}")
+                except Exception as e:
+                    logger.warning(f"Could not backup {py_file.name}: {e}")
+        
+        # 6. VSE templates from data/vse/
+        vse_dir = data_dir / 'vse'
+        if vse_dir.exists():
+            for vse_file in vse_dir.glob('*.json'):
+                try:
+                    with open(vse_file, 'r') as f:
+                        backup_data['vse_templates'][vse_file.name] = json.load(f)
+                except Exception as e:
+                    logger.warning(f"Could not backup VSE {vse_file.name}: {e}")
+        
+        # 7. Settings (.env)
+        env_file = base_dir / '.env'
         if env_file.exists():
             with open(env_file, 'r') as f:
                 for line in f:
@@ -1337,34 +1365,53 @@ async def create_backup():
                         key, _, value = line.strip().partition('=')
                         backup_data['settings'][key] = value
         
+        # 8. SQLite database as base64
+        db_file = data_dir / 'knx.db'
+        if db_file.exists():
+            with open(db_file, 'rb') as f:
+                backup_data['database_b64'] = base64.b64encode(f.read()).decode('ascii')
+        
         backup_json = json.dumps(backup_data, indent=2, ensure_ascii=False)
+        filename = f'knx-backup-{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
+        
+        logger.info(f"Backup created: {len(backup_data['group_addresses'])} addresses, "
+                    f"{len(backup_data.get('custom_blocks', {}))} custom blocks, "
+                    f"{len(backup_data.get('vse_templates', {}))} VSE templates")
         
         return Response(
             content=backup_json,
             media_type='application/json',
-            headers={'Content-Disposition': f'attachment; filename="knx-backup-{datetime.now().strftime("%Y%m%d")}.json"'}
+            headers={'Content-Disposition': f'attachment; filename="{filename}"'}
         )
         
     except Exception as e:
-        logger.error(f"Backup error: {e}")
+        logger.error(f"Backup error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/system/restore")
 async def restore_backup(file: UploadFile = File(...)):
-    """Restore system from backup"""
+    """Restore system from comprehensive backup"""
+    import base64
     
     try:
         content = await file.read()
         backup_data = json.loads(content.decode('utf-8'))
         
-        restored = {'addresses': 0, 'blocks': 0, 'positions': 0, 'settings': False}
+        base_dir = Path(__file__).parent.parent
+        data_dir = base_dir / 'data'
+        data_dir.mkdir(parents=True, exist_ok=True)
         
-        # Restore group addresses
+        restored = {
+            'addresses': 0, 'blocks': 0, 'positions': 0,
+            'visu_rooms': 0, 'custom_blocks': 0, 'vse_templates': 0,
+            'settings': False, 'database': False
+        }
+        
+        # 1. Restore group addresses
         if 'group_addresses' in backup_data:
             for addr_data in backup_data['group_addresses']:
                 try:
                     ga = GroupAddressCreate(**addr_data)
-                    # Try to update existing, create if not exists
                     existing = await db_manager.get_group_address(ga.address)
                     if existing:
                         await db_manager.update_group_address(ga.address, ga)
@@ -1374,48 +1421,84 @@ async def restore_backup(file: UploadFile = File(...)):
                 except Exception as e:
                     logger.warning(f"Could not restore address {addr_data.get('address')}: {e}")
         
-        # Restore logic config
-        if 'logic_config' in backup_data and backup_data['logic_config']:
-            config_file = Path(__file__).parent.parent / 'data' / 'logic_config.json'
-            config_file.parent.mkdir(parents=True, exist_ok=True)
+        # 2. Restore logic config
+        if backup_data.get('logic_config'):
+            config_file = data_dir / 'logic_config.json'
             with open(config_file, 'w') as f:
                 json.dump(backup_data['logic_config'], f, indent=2)
             restored['blocks'] = len(backup_data['logic_config'].get('blocks', []))
         
-        # Restore block positions
-        if 'block_positions' in backup_data and backup_data['block_positions']:
-            positions_file = Path(__file__).parent.parent / 'data' / 'block_positions.json'
-            positions_file.parent.mkdir(parents=True, exist_ok=True)
+        # 3. Restore block positions
+        if backup_data.get('block_positions'):
+            positions_file = data_dir / 'block_positions.json'
             with open(positions_file, 'w') as f:
                 json.dump(backup_data['block_positions'], f, indent=2)
             restored['positions'] = len(backup_data['block_positions'])
         
-        # Restore visu config
-        if 'visu_config' in backup_data and backup_data['visu_config']:
-            visu_file = Path(__file__).parent.parent / 'data' / 'visu_config.json'
-            visu_file.parent.mkdir(parents=True, exist_ok=True)
+        # 4. Restore visu rooms
+        if backup_data.get('visu_rooms'):
+            visu_file = data_dir / 'visu_rooms.json'
             with open(visu_file, 'w') as f:
-                json.dump(backup_data['visu_config'], f, indent=2)
-            restored['visu'] = len(backup_data['visu_config'])
+                json.dump(backup_data['visu_rooms'], f, indent=2, ensure_ascii=False)
+            restored['visu_rooms'] = len(backup_data['visu_rooms']) if isinstance(backup_data['visu_rooms'], list) else 1
         
-        # Restore settings
-        if 'settings' in backup_data and backup_data['settings']:
-            env_file = Path(__file__).parent.parent / '.env'
+        # 5. Restore custom blocks (.py files)
+        if backup_data.get('custom_blocks'):
+            custom_dir = data_dir / 'custom_blocks'
+            custom_dir.mkdir(parents=True, exist_ok=True)
+            for filename, py_content in backup_data['custom_blocks'].items():
+                if filename.endswith('.py'):
+                    (custom_dir / filename).write_text(py_content, encoding='utf-8')
+                    restored['custom_blocks'] += 1
+                    logger.info(f"Restored custom block: {filename}")
+        
+        # 6. Restore VSE templates
+        if backup_data.get('vse_templates'):
+            vse_dir = data_dir / 'vse'
+            vse_dir.mkdir(parents=True, exist_ok=True)
+            for filename, vse_data in backup_data['vse_templates'].items():
+                with open(vse_dir / filename, 'w') as f:
+                    json.dump(vse_data, f, indent=2, ensure_ascii=False)
+                restored['vse_templates'] += 1
+        
+        # 7. Restore settings
+        if backup_data.get('settings'):
+            env_file = base_dir / '.env'
             with open(env_file, 'w') as f:
                 for key, value in backup_data['settings'].items():
                     f.write(f"{key}={value}\n")
             restored['settings'] = True
         
+        # 8. Restore database (only if present and no addresses were restored from JSON)
+        if backup_data.get('database_b64') and restored['addresses'] == 0:
+            db_file = data_dir / 'knx.db'
+            db_bytes = base64.b64decode(backup_data['database_b64'])
+            with open(db_file, 'wb') as f:
+                f.write(db_bytes)
+            restored['database'] = True
+            logger.info("Restored SQLite database from backup")
+        
+        summary_parts = []
+        if restored['addresses']: summary_parts.append(f"{restored['addresses']} Adressen")
+        if restored['blocks']: summary_parts.append(f"{restored['blocks']} Logikbausteine")
+        if restored['visu_rooms']: summary_parts.append(f"{restored['visu_rooms']} Visu-Räume")
+        if restored['custom_blocks']: summary_parts.append(f"{restored['custom_blocks']} Custom Blocks")
+        if restored['vse_templates']: summary_parts.append(f"{restored['vse_templates']} VSE-Templates")
+        if restored['settings']: summary_parts.append("Einstellungen")
+        
+        msg = f"Wiederhergestellt: {', '.join(summary_parts) or 'nichts'}"
+        logger.info(msg)
+        
         return {
             'status': 'success',
-            'message': f"Wiederhergestellt: {restored['addresses']} Adressen, {restored['blocks']} Bausteine",
+            'message': msg + ". Bitte Service neu starten für volle Wirkung.",
             'restored': restored
         }
         
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Ungültiges Backup-Format")
     except Exception as e:
-        logger.error(f"Restore error: {e}")
+        logger.error(f"Restore error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/system/update/upload")
