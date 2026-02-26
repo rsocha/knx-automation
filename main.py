@@ -92,63 +92,56 @@ async def lifespan(app: FastAPI):
     await logic_manager.shutdown()
     await knx_manager.disconnect()
 
-app = FastAPI(title="KNX Automation System", version="3.0.28", lifespan=lifespan)
+app = FastAPI(title="KNX Automation System", version="3.1.9", lifespan=lifespan)
 app.include_router(router, prefix="/api/v1")
 
 dashboard_path = Path(__file__).parent / "static"
 
 # SPA Routes - serve index.html for all frontend routes
+# CRITICAL: no-cache on index.html so browser always gets latest JS/CSS references after updates
 SPA_ROUTES = ["/", "/panel", "/visu", "/logic", "/log", "/settings", "/update"]
+
+def serve_spa():
+    """Serve index.html with no-cache headers so updates are always picked up"""
+    index_path = dashboard_path / "index.html"
+    if index_path.exists():
+        return FileResponse(
+            index_path,
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            }
+        )
+    return {"message": "KNX Automation API", "docs": "/docs"}
 
 @app.get("/")
 async def root():
-    index_path = dashboard_path / "index.html"
-    if index_path.exists():
-        return FileResponse(index_path)
-    return {"message": "KNX Automation API", "docs": "/docs"}
+    return serve_spa()
 
 @app.get("/panel")
 async def panel():
-    index_path = dashboard_path / "index.html"
-    logger.info(f"[PANEL] Requested, dashboard_path={dashboard_path}, exists={index_path.exists()}")
-    if index_path.exists():
-        return FileResponse(index_path)
-    return {"detail": "Not Found", "path": str(index_path), "exists": index_path.exists()}
+    return serve_spa()
 
 @app.get("/visu")
 async def visu():
-    index_path = dashboard_path / "index.html"
-    if index_path.exists():
-        return FileResponse(index_path)
-    return {"detail": "Not Found"}
+    return serve_spa()
 
 @app.get("/logic")
 async def logic():
-    index_path = dashboard_path / "index.html"
-    if index_path.exists():
-        return FileResponse(index_path)
-    return {"detail": "Not Found"}
+    return serve_spa()
 
 @app.get("/log")
 async def log():
-    index_path = dashboard_path / "index.html"
-    if index_path.exists():
-        return FileResponse(index_path)
-    return {"detail": "Not Found"}
+    return serve_spa()
 
 @app.get("/settings")
 async def settings():
-    index_path = dashboard_path / "index.html"
-    if index_path.exists():
-        return FileResponse(index_path)
-    return {"detail": "Not Found"}
+    return serve_spa()
 
 @app.get("/update")
 async def update():
-    index_path = dashboard_path / "index.html"
-    if index_path.exists():
-        return FileResponse(index_path)
-    return {"detail": "Not Found"}
+    return serve_spa()
 
 # Mount static files AFTER explicit routes
 if dashboard_path.exists():

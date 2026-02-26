@@ -51,6 +51,10 @@ class LogicManager:
         data_dir = self._custom_blocks_path.parent
         data_dir.mkdir(parents=True, exist_ok=True)
         
+        # Preserve raw config for blocks that couldn't be loaded (missing .py, import error, etc.)
+        # These will be re-saved so they aren't lost permanently
+        self._unloaded_block_configs: list = []
+        
         logger.info(f"Data directory: {data_dir}")
         logger.info(f"Custom blocks path: {self._custom_blocks_path}")
         logger.info(f"Available builtin blocks: {list(ALL_BUILTIN_BLOCKS.keys())}")
@@ -66,14 +70,33 @@ class LogicManager:
     
     async def _load_custom_blocks(self):
         """Load custom block classes from Python files"""
+        logger.info(f"Loading custom blocks from: {self._custom_blocks_path}")
+        logger.info(f"Path exists: {self._custom_blocks_path.exists()}")
+        
         if not self._custom_blocks_path.exists():
+            logger.warning(f"Custom blocks path does not exist, creating it...")
+            self._custom_blocks_path.mkdir(parents=True, exist_ok=True)
             return
         
-        for file in self._custom_blocks_path.glob("*.py"):
+        # List all files in directory
+        all_files = list(self._custom_blocks_path.iterdir())
+        logger.info(f"Files in custom_blocks directory: {[f.name for f in all_files]}")
+        
+        py_files = list(self._custom_blocks_path.glob("*.py"))
+        logger.info(f"Found {len(py_files)} .py files: {[f.name for f in py_files]}")
+        
+        for file in py_files:
             try:
-                await self._load_block_file(file)
+                logger.info(f"Loading block file: {file}")
+                result = await self._load_block_file(file)
+                if result:
+                    logger.info(f"Successfully loaded: {result}")
+                else:
+                    logger.warning(f"No LogicBlock classes found in {file}")
             except Exception as e:
-                logger.error(f"Error loading custom block {file}: {e}")
+                logger.error(f"Error loading custom block {file}: {e}", exc_info=True)
+        
+        logger.info(f"Custom block classes loaded: {list(self._custom_block_classes.keys())}")
     
     async def _load_block_file(self, file_path: Path) -> Optional[str]:
         """Load a single block file and register its classes"""
@@ -497,7 +520,10 @@ class LogicManager:
                     
                     # Check if block type exists
                     if block_type not in ALL_BUILTIN_BLOCKS and block_type not in self._custom_block_classes:
-                        logger.error(f"Unknown block type: {block_type}. Available: {list(ALL_BUILTIN_BLOCKS.keys())} + {list(self._custom_block_classes.keys())}")
+                        logger.warning(f"Block type '{block_type}' not available, preserving config for later. "
+                                      f"Available: {list(ALL_BUILTIN_BLOCKS.keys())} + {list(self._custom_block_classes.keys())}")
+                        # PRESERVE the raw config so it's not lost on next save_to_db()
+                        self._unloaded_block_configs.append(block_data)
                         continue
                     
                     block = self.create_block(
@@ -545,16 +571,16 @@ class LogicManager:
             logger.error(f"Error loading logic config: {e}", exc_info=True)
     
     async def save_to_db(self):
-        """Save pages and blocks to database"""
-        try:
-            config_file = self._custom_blocks_path.parent / "logic_config.json"
-            
-            # Ensure parent directory exists
-            config_file.parent.mkdir(parents=True, exist_ok=True)
-            
-            data = {
-                'pages': list(self._pages.values()),
-                'blocks': [
+        """Save pages and blocks to database (with lock to prevent concurrent writes)"""
+        if not hasattr(self, '_save_lock'):
+            self._save_lock = asyncio.Lock()
+        async with self._save_lock:
+            try:
+                config_file = self._custom_blocks_path.parent / "logic_config.json"
+                config_file.parent.mkdir(parents=True, exist_ok=True)
+                
+                # Active blocks
+                active_blocks = [
                     {
                         'instance_id': b.instance_id,
                         'block_type': b.__class__.__name__,
@@ -562,20 +588,33 @@ class LogicManager:
                         'enabled': b._enabled,
                         'input_bindings': b._input_bindings,
                         'output_bindings': b._output_bindings,
-                        'input_values': b._input_values,  # Save input values!
+                        'input_values': b._input_values,
                     }
                     for b in self._blocks.values()
                 ]
-            }
-            
-            logger.info(f"Saving config to {config_file}: {len(data['pages'])} pages, {len(data['blocks'])} blocks")
-            
-            with open(config_file, 'w') as f:
-                json.dump(data, f, indent=2)
-            
-            logger.info(f"Saved logic config successfully")
-        except Exception as e:
-            logger.error(f"Error saving logic config: {e}", exc_info=True)
+                
+                # Include unloaded blocks so they aren't lost!
+                # Filter out any that were since loaded (by instance_id)
+                active_ids = {b.instance_id for b in self._blocks.values()}
+                preserved = [cfg for cfg in self._unloaded_block_configs if cfg.get('instance_id') not in active_ids]
+                
+                if preserved:
+                    logger.info(f"Preserving {len(preserved)} unloaded block configs: {[c.get('instance_id') for c in preserved]}")
+                
+                data = {
+                    'pages': list(self._pages.values()),
+                    'blocks': active_blocks + preserved,
+                }
+                
+                # Atomic write: write to temp file then rename
+                tmp_file = config_file.with_suffix('.json.tmp')
+                with open(tmp_file, 'w') as f:
+                    json.dump(data, f, indent=2)
+                tmp_file.replace(config_file)
+                
+                logger.info(f"Saved logic config: {len(active_blocks)} active + {len(preserved)} preserved blocks, {len(data['pages'])} pages")
+            except Exception as e:
+                logger.error(f"Error saving logic config: {e}", exc_info=True)
     
     def get_block_file_code(self, filename: str) -> str:
         """Get source code of a custom block file"""
@@ -618,7 +657,7 @@ class LogicManager:
         for block in self._blocks.values():
             try:
                 block.on_stop()
-            except:
+            except Exception:
                 pass
         
         # Save config

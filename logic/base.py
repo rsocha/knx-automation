@@ -168,13 +168,15 @@ class LogicBlock(ABC):
     
     def bind_input(self, input_key: str, address: str):
         """Bind an input to a KNX or internal address"""
-        if input_key in self.INPUTS:
-            self._input_bindings[input_key] = address
+        if input_key not in self.INPUTS:
+            logger.warning(f"{self.instance_id}: Binding unknown input '{input_key}' (known: {list(self.INPUTS.keys())})")
+        self._input_bindings[input_key] = address
     
     def bind_output(self, output_key: str, address: str):
         """Bind an output to a KNX or internal address"""
-        if output_key in self.OUTPUTS:
-            self._output_bindings[output_key] = address
+        if output_key not in self.OUTPUTS:
+            logger.warning(f"{self.instance_id}: Binding unknown output '{output_key}' (known: {list(self.OUTPUTS.keys())})")
+        self._output_bindings[output_key] = address
     
     def get_input_binding(self, input_key: str) -> Optional[str]:
         return self._input_bindings.get(input_key)

@@ -41,6 +41,13 @@
       "description": "",
       "blocks": [],
       "created_at": "2026-02-14T15:52:41.119575"
+    },
+    {
+      "id": "page_2ea86949",
+      "name": "Seite 7",
+      "description": "",
+      "blocks": [],
+      "created_at": "2026-02-26T09:00:22.272056"
     }
   ],
   "blocks": [
@@ -87,6 +94,112 @@
         "E20": true,
         "E21": -1,
         "E22": false
+      }
+    },
+    {
+      "instance_id": "20030_FroniusGen24_1_164958",
+      "block_type": "FroniusGen24",
+      "page_id": "page_be212972",
+      "enabled": true,
+      "input_bindings": {},
+      "output_bindings": {
+        "A4": "IKO:1_Fronius Gen24 Solar API:A4",
+        "A12": "IKO:1_Fronius Gen24 Solar API:A12",
+        "A16": "IKO:1_Fronius Gen24 Solar API:A16",
+        "A8": "IKO:1_Fronius Gen24 Solar API:A8"
+      },
+      "input_values": {
+        "E1": true,
+        "E2": "192.168.0.54",
+        "E3": 10,
+        "E4": "00:00",
+        "E5": false
+      }
+    },
+    {
+      "instance_id": "20027_EcowittWS90_2_170238",
+      "block_type": "EcowittWS90",
+      "page_id": "page_4b95ccd3",
+      "enabled": true,
+      "input_bindings": {
+        "E1": "IKO:2_Ecowitt WS90:E1",
+        "E3": "IKO:2_Ecowitt WS90:E3"
+      },
+      "output_bindings": {
+        "A1": "IKO:2_Ecowitt WS90:A1",
+        "A2": "IKO:2_Ecowitt WS90:A2",
+        "A3": "IKO:2_Ecowitt WS90:A3",
+        "A4": "IKO:2_Ecowitt WS90:A4",
+        "A5": "IKO:2_Ecowitt WS90:A5",
+        "A6": "IKO:2_Ecowitt WS90:A6",
+        "A7": "IKO:2_Ecowitt WS90:A7",
+        "A8": "IKO:2_Ecowitt WS90:A8",
+        "A10": "IKO:2_Ecowitt WS90:A10",
+        "A11": "IKO:2_Ecowitt WS90:A11",
+        "A15": "IKO:2_Ecowitt WS90:A15",
+        "A16": "IKO:2_Ecowitt WS90:A16"
+      },
+      "input_values": {
+        "E1": "192.168.0.16",
+        "E2": 60,
+        "E3": false
+      }
+    },
+    {
+      "instance_id": "20031_OAuth2TokenManager_3_170455",
+      "block_type": "OAuth2TokenManager",
+      "page_id": "page_83df6572",
+      "enabled": true,
+      "input_bindings": {},
+      "output_bindings": {
+        "A1": "IKO:3_OAuth2 TokenManager:A1"
+      },
+      "input_values": {
+        "E1": true,
+        "E2": false,
+        "E3": "6969285248a78796fe064154",
+        "E4": "IIChuEvoMmtlmsK6ewCouwkifCl4qvW62Udr",
+        "E5": "",
+        "E6": "https://api.netatmo.com/oauth2/token",
+        "E7": "read_homecoach",
+        "E8": "ccbf272e78e088435d0d461630e755a2",
+        "E9": "http://localhost",
+        "E10": "knx_automation",
+        "E11": "https://api.netatmo.com/oauth2/authorize"
+      }
+    },
+    {
+      "instance_id": "20032_NetatmoHomecoach_4_170757",
+      "block_type": "NetatmoHomecoach",
+      "page_id": "page_83df6572",
+      "enabled": true,
+      "input_bindings": {
+        "E3": "IKO:3_OAuth2 TokenManager:A1"
+      },
+      "output_bindings": {},
+      "input_values": {
+        "E1": true,
+        "E2": 300,
+        "E3": "557d033d29977ed2858b4629|b324e9d69d390c4301686e47927dbfa1",
+        "E4": "",
+        "E5": false
+      }
+    },
+    {
+      "instance_id": "20035_EPEXSpotPrice_4_090044",
+      "block_type": "EPEXSpotPrice",
+      "page_id": "page_698d3010",
+      "enabled": true,
+      "input_bindings": {},
+      "output_bindings": {
+        "A17": "IKO:3_EPEX Spot Preis:A17"
+      },
+      "input_values": {
+        "E1": true,
+        "E2": 300,
+        "E3": 1,
+        "E4": 0.0,
+        "E5": false
       }
     }
   ]

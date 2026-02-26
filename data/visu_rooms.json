@@ -44,8 +44,8 @@
         "label": "PV Leistung",
         "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
         "koBindings": {
-          "ko1": "IKO:FRONIUS/A4",
-          "ko2": "IKO:FRONIUS/A16"
+          "ko1": "IKO:1_Fronius Gen24 Solar API:A4",
+          "ko2": "IKO:1_Fronius Gen24 Solar API:A16"
         },
         "variableValues": {
           "var1": 0,
@@ -71,6 +71,18 @@
         },
         "x": 175,
         "y": 28
+      },
+      {
+        "id": "a88cd009-a19f-47c1-9ef5-af5a40fdbc8a",
+        "templateId": "sensor-card",
+        "label": "Batterie",
+        "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
+        "koBindings": {
+          "ko1": "IKO:1_Fronius Gen24 Solar API:A8"
+        },
+        "variableValues": {},
+        "x": 189,
+        "y": 114
       }
     ]
   },
@@ -85,7 +97,14 @@
         "label": "Sonos",
         "roomId": "86a96428-1e0c-4847-a93f-bc2b90bdb526",
         "koBindings": {
-          "ko4": "IKO:200352_SonosController_5_062328:A7"
+          "ko4": "IKO:200352_SonosController_5_062328:A7",
+          "ko1": "IKO:200352_SonosController_5_062328:A4",
+          "ko9": "IKO:200352_SonosController_5_062328:E4",
+          "ko2": "IKO:200352_SonosController_5_062328:A5",
+          "ko13": "IKO:200352_SonosController_5_062328:A3",
+          "ko3": "IKO:200352_SonosController_5_062328:A6",
+          "ko5": "IKO:5_SONOS Controller:A2",
+          "ko6": "IKO:200352_SonosController_5_062328:A15"
         },
         "variableValues": {},
         "x": 0,

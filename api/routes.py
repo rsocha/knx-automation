@@ -18,6 +18,9 @@ from logic import logic_manager
 from logic.manager import ALL_BUILTIN_BLOCKS
 
 logger = logging.getLogger(__name__)
+
+# Single source of truth for version — update HERE only
+APP_VERSION = "3.1.9"
 router = APIRouter()
 
 
@@ -39,7 +42,7 @@ class PageCreate(BaseModel):
 
 @router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "3.0.28"}
+    return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": APP_VERSION}
 
 @router.post("/system/fix-permissions")
 async def fix_permissions():
@@ -323,7 +326,7 @@ async def export_visu_config():
     """Export complete visu configuration as downloadable JSON"""
     try:
         export_data = {
-            "version": "3.0.28",
+            "version": APP_VERSION,
             "exported_at": datetime.now().isoformat(),
             "rooms": [],
             "config": {}
@@ -394,7 +397,7 @@ async def list_vse_templates():
                             "category": data.get("category", ""),
                             "filename": f.name
                         })
-                except:
+                except Exception:
                     pass
             # Also check for .json files that aren't .vse.json
             for f in VSE_DIR.glob("*.json"):
@@ -410,7 +413,7 @@ async def list_vse_templates():
                                     "category": data.get("category", ""),
                                     "filename": f.name
                                 })
-                    except:
+                    except Exception:
                         pass
         return {"templates": templates}
     except Exception as e:
@@ -948,7 +951,7 @@ async def get_status():
             "connection_type": knx_manager._connection_type,
             "group_address_count": await db_manager.get_group_address_count(),
             "timestamp": datetime.now().isoformat(),
-            "version": "3.0.28"
+            "version": APP_VERSION
         }
     except Exception as e:
         logger.error(f"Status error: {e}")
@@ -1029,7 +1032,7 @@ async def _import_csv_content(content: bytes) -> dict:
     """Helper to import CSV content"""
     try:
         text = content.decode('utf-8')
-    except:
+    except Exception:
         text = content.decode('latin-1')
     
     lines = text.strip().split('\n')
@@ -1170,7 +1173,7 @@ async def import_csv(file: UploadFile = File(...)):
                         dpt=parts[2].strip() if len(parts) > 2 else None
                     ))
                     imported += 1
-                except:
+                except Exception:
                     pass
         
         return {"status": "success", "count": imported}
@@ -1254,7 +1257,7 @@ async def ws_telegrams(websocket: WebSocket):
                 "payload": data["payload"],
                 "direction": data["direction"]
             })
-        except:
+        except Exception:
             pass
     
     knx_manager.register_telegram_callback(callback)
@@ -1267,8 +1270,9 @@ async def ws_telegrams(websocket: WebSocket):
     finally:
         knx_manager.unregister_telegram_callback(callback)
 
-@router.post("/system/restart")
-async def restart():
+@router.post("/knx/reconnect-gateway")
+async def reconnect_knx_gateway():
+    """Reconnect KNX gateway only (not a full restart)"""
     await knx_manager.disconnect()
     await asyncio.sleep(1)
     await knx_manager.connect()
@@ -1473,15 +1477,18 @@ async def upload_update(file: UploadFile = File(...)):
                     shutil.copytree(vse_src, vse_dst)
                     logger.info("Updated: data/vse/")
                 
-                # Copy custom_blocks - WICHTIG!
+                # Merge custom_blocks - preserve user-uploaded blocks!
                 custom_blocks_src = source_dir / 'data' / 'custom_blocks'
                 if custom_blocks_src.exists():
                     custom_blocks_dst = base_dir / 'data' / 'custom_blocks'
-                    custom_blocks_dst.parent.mkdir(exist_ok=True)
-                    if custom_blocks_dst.exists():
-                        shutil.rmtree(custom_blocks_dst)
-                    shutil.copytree(custom_blocks_src, custom_blocks_dst)
-                    logger.info("Updated: data/custom_blocks/ (Sonos v1.3, Button-to-Pulse)")
+                    custom_blocks_dst.mkdir(parents=True, exist_ok=True)
+                    merged_files = []
+                    for src_file in custom_blocks_src.iterdir():
+                        if src_file.is_file():
+                            dst_file = custom_blocks_dst / src_file.name
+                            shutil.copy2(src_file, dst_file)
+                            merged_files.append(src_file.name)
+                    logger.info(f"Merged custom_blocks (user blocks preserved): {merged_files}")
                 
                 # Copy main.py if exists
                 main_src = source_dir / 'main.py'
@@ -1496,7 +1503,7 @@ async def upload_update(file: UploadFile = File(...)):
                         try:
                             shutil.rmtree(cache_path)
                             logger.info(f"Cleared cache: {cache_path}")
-                        except:
+                        except Exception:
                             pass
             
             # Cleanup temp
@@ -1517,12 +1524,33 @@ async def upload_update(file: UploadFile = File(...)):
             except Exception as e:
                 logger.warning(f"Could not fix permissions: {e}")
             
-            # Auto-restart service
+            # Auto-restart service using detached script (survives service stop)
             try:
-                subprocess.Popen(['systemctl', 'restart', 'knx-automation'], 
-                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            except:
-                pass
+                import tempfile
+                restart_script = tempfile.NamedTemporaryFile(
+                    mode='w', suffix='.sh', delete=False, dir='/tmp'
+                )
+                restart_script.write('#!/bin/bash\n')
+                restart_script.write('sleep 2\n')
+                restart_script.write('systemctl restart knx-automation\n')
+                restart_script.write(f'rm -f {restart_script.name}\n')
+                restart_script.close()
+                os.chmod(restart_script.name, 0o755)
+                subprocess.Popen(
+                    ['nohup', restart_script.name],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    preexec_fn=os.setpgrp,  # Detach from parent process group
+                )
+                logger.info(f"Restart script scheduled: {restart_script.name}")
+            except Exception as e:
+                logger.error(f"Could not schedule restart: {e}")
+                # Fallback: direct attempt
+                try:
+                    subprocess.Popen(['systemctl', 'restart', 'knx-automation'],
+                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                except Exception:
+                    pass
             
             return {"status": "success", "message": "Update installiert. Service wird neugestartet..."}
             
@@ -1563,35 +1591,6 @@ KNX_USE_ROUTING={'false' if use_tunneling else 'true'}
     await knx_manager.connect()
     
 
-@router.post("/system/restart")
-async def restart_system():
-    """Restart the KNX Automation service"""
-    import subprocess
-    import os
-    
-    try:
-        # First save current state
-        await logic_manager.save_to_db()
-        
-        # Disconnect KNX gracefully
-        await knx_manager.disconnect()
-        
-        # Schedule restart after response is sent
-        async def do_restart():
-            await asyncio.sleep(1)
-            # Try systemctl first (for systemd services)
-            try:
-                subprocess.run(['systemctl', 'restart', 'knx-automation'], check=True)
-            except:
-                # Fallback: Exit and let supervisor/docker restart
-                os._exit(0)
-        
-        asyncio.create_task(do_restart())
-        return {"status": "success", "message": "System wird neugestartet..."}
-    except Exception as e:
-        logger.error(f"Restart error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-    
     return {"status": "success", "gateway_ip": gateway_ip}
 
 
@@ -1602,7 +1601,7 @@ async def export_logic_config():
     """Export all logic blocks and pages as downloadable JSON"""
     try:
         export_data = {
-            "version": "3.0.28",
+            "version": APP_VERSION,
             "exported_at": datetime.now().isoformat(),
             "blocks": logic_manager.get_all_blocks(),
             "pages": list(logic_manager._pages.values()) if hasattr(logic_manager, '_pages') else []
@@ -1736,7 +1735,18 @@ async def bind_block(instance_id: str, data: BindingCreate):
     Supports BLOCK:instance_id:output_key format for direct block-to-block connections.
     This will automatically create an IKO address and bind both blocks.
     """
+    # URL-decode the instance_id (FastAPI should do this, but be safe)
+    from urllib.parse import unquote
+    instance_id = unquote(instance_id)
+    
     address = data.address
+    
+    # Verify block exists first with helpful error
+    target_block = logic_manager.get_block(instance_id)
+    if not target_block:
+        available = list(logic_manager._blocks.keys())[:10]
+        logger.error(f"bind_block: Block '{instance_id}' not found. Available: {available}")
+        raise HTTPException(status_code=404, detail=f"Block '{instance_id}' nicht gefunden")
     
     # Handle BLOCK: addresses for direct connections
     if address and address.startswith('BLOCK:'):
@@ -1747,18 +1757,15 @@ async def bind_block(instance_id: str, data: BindingCreate):
             
             # Get source block for name and ID
             source_block = logic_manager.get_block(source_instance)
-            if source_block:
-                # Simplified IKO format: IKO:InstanceNum_BlockName:OutputKey
-                # Extract instance number from instance_id
-                id_parts = source_instance.split('_')
-                instance_num = id_parts[-2] if len(id_parts) >= 3 else "0"
-                block_name = source_block._name or source_block.NAME
-                iko_address = f"IKO:{instance_num}_{block_name}:{source_output}"
-                iko_name = f"{block_name}.{source_output}"
-            else:
-                # Fallback if block not found
-                iko_address = f"IKO:{source_instance[:15]}:{source_output}"
-                iko_name = f"{source_instance}.{source_output}"
+            if not source_block:
+                raise HTTPException(status_code=404, detail=f"Quell-Block '{source_instance}' nicht gefunden")
+            
+            # Simplified IKO format: IKO:InstanceNum_BlockName:OutputKey
+            id_parts = source_instance.split('_')
+            instance_num = id_parts[-2] if len(id_parts) >= 3 else "0"
+            block_name = getattr(source_block, '_name', None) or getattr(source_block, 'NAME', source_block.__class__.__name__)
+            iko_address = f"IKO:{instance_num}_{block_name}:{source_output}"
+            iko_name = f"{block_name}.{source_output}"
             
             # Create IKO if it doesn't exist
             try:
@@ -1775,21 +1782,29 @@ async def bind_block(instance_id: str, data: BindingCreate):
                 logger.warning(f"Could not create IKO: {e}")
             
             # Bind source block output to IKO
-            if source_block:
-                logic_manager.bind_output(source_instance, source_output, iko_address)
-                logger.info(f"Bound source {source_instance}.{source_output} -> {iko_address}")
+            logic_manager.bind_output(source_instance, source_output, iko_address)
+            logger.info(f"Bound source {source_instance}.{source_output} -> {iko_address}")
             
             # Use IKO address for target binding
             address = iko_address
     
     if data.input_key:
+        # Validate input key exists on block
+        if data.input_key not in target_block.INPUTS:
+            available_inputs = list(target_block.INPUTS.keys())
+            logger.error(f"bind_block: Input key '{data.input_key}' not in block inputs: {available_inputs}")
+            raise HTTPException(status_code=400, detail=f"Eingang '{data.input_key}' nicht gefunden. Verfügbar: {available_inputs}")
         if not logic_manager.bind_input(instance_id, data.input_key, address):
-            raise HTTPException(status_code=400, detail="Invalid input binding")
+            raise HTTPException(status_code=400, detail=f"Binding fehlgeschlagen für {instance_id}.{data.input_key}")
     elif data.output_key:
+        if data.output_key not in target_block.OUTPUTS:
+            available_outputs = list(target_block.OUTPUTS.keys())
+            logger.error(f"bind_block: Output key '{data.output_key}' not in block outputs: {available_outputs}")
+            raise HTTPException(status_code=400, detail=f"Ausgang '{data.output_key}' nicht gefunden. Verfügbar: {available_outputs}")
         if not logic_manager.bind_output(instance_id, data.output_key, address):
-            raise HTTPException(status_code=400, detail="Invalid output binding")
+            raise HTTPException(status_code=400, detail=f"Binding fehlgeschlagen für {instance_id}.{data.output_key}")
     else:
-        raise HTTPException(status_code=400, detail="Must specify input_key or output_key")
+        raise HTTPException(status_code=400, detail="input_key oder output_key muss angegeben werden")
     
     await logic_manager.save_to_db()
     return {"status": "bound", "address": address}
@@ -2024,6 +2039,17 @@ async def delete_custom_block(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
     return {"status": "deleted"}
 
+@router.post("/logic/custom-blocks/reload")
+async def reload_custom_blocks():
+    """Reload all custom blocks from disk"""
+    try:
+        await logic_manager._load_custom_blocks()
+        loaded = list(logic_manager._custom_block_classes.keys())
+        return {"status": "ok", "loaded": loaded}
+    except Exception as e:
+        logger.error(f"Error reloading custom blocks: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/logic/custom-blocks/{filename}/code")
 async def get_custom_block_code(filename: str):
     """Get source code of a custom block file"""
@@ -2101,12 +2127,37 @@ async def system_update(file: UploadFile = File(...)):
 
 @router.post("/system/restart")
 async def system_restart():
-    """Restart the service (requires systemd)"""
+    """Restart the service using a detached script that survives service stop"""
     import subprocess
+    import os
+    import tempfile
+    
     try:
-        subprocess.Popen(['systemctl', 'restart', 'knx-automation'])
-        return {"status": "restarting"}
+        # Save state first
+        await logic_manager.save_to_db()
+        await knx_manager.disconnect()
+        
+        # Create a detached restart script
+        restart_script = tempfile.NamedTemporaryFile(
+            mode='w', suffix='.sh', delete=False, dir='/tmp'
+        )
+        restart_script.write('#!/bin/bash\n')
+        restart_script.write('sleep 2\n')
+        restart_script.write('systemctl restart knx-automation\n')
+        restart_script.write(f'rm -f {restart_script.name}\n')
+        restart_script.close()
+        os.chmod(restart_script.name, 0o755)
+        
+        subprocess.Popen(
+            ['nohup', restart_script.name],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            preexec_fn=os.setpgrp,
+        )
+        logger.info(f"Restart scheduled via {restart_script.name}")
+        return {"status": "restarting", "message": "Service wird in 2 Sekunden neugestartet..."}
     except Exception as e:
+        logger.error(f"Restart error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/knx/reconnect")
