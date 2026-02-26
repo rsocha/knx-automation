@@ -2,333 +2,217 @@
 
 Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home Systemen.
 
-![Version](https://img.shields.io/badge/version-3.0.28-blue)
+![Version](https://img.shields.io/badge/version-3.2.0-blue)
 
 ## 🚀 Features
 
-### Dashboard (Adressen)
-- Übersicht aller KNX Gruppenadressen
-- Echtzeit-Statusanzeige mit Polling
-- Senden von Befehlen direkt aus der Tabelle
-- Filter nach internen/externen Adressen
-
-### Visualisierung
-- **VSE Widget System** - Visuelle Elemente für Schalter, Sensoren, Charts
-- **Server-Sync** - Automatische Speicherung auf dem Server
-- **Drag & Drop** - Widgets frei positionieren und skalieren
-- **Mobile Panel** - Standalone-Ansicht für Smartphones
-- **Home Assistant Import** - YAML-Karten importieren
-- **Widget Upload/Download** - Eigene Templates verwalten
+### Dashboard
+- Übersicht aller KNX Gruppenadressen mit Echtzeit-Statusanzeige
+- **Werte senden** – Dialog zum Senden beliebiger Werte an KNX Bus und IKOs
+- **Quick-Toggle** – Schalten von DPT-1 Adressen direkt in der Tabelle
+- **Wert kopieren** – Klick auf Wert kopiert in die Zwischenablage (HTTP-kompatibel)
+- Filter nach internen (IKO) / externen (KNX) Adressen
+- Sortierung, Gruppenfilter, Batch-Operationen
+- CSV-Import für Gruppenadressen
+- Feste Spaltenbreiten — Wert-Spalte truncated mit Tooltip
 
 ### Logik-Editor
 - **ReactFlow** basierter visueller Editor
-- Logik-Blöcke per Drag & Drop verbinden
-- KO-Bindungen für Ein-/Ausgänge
+- **Integrierte Bausteinbibliothek** – Sidebar links mit Suchfunktion
+- **Drag-to-Connect** – Blöcke per Linie verbinden, IKOs werden automatisch erstellt
+- **IKO-Deduplizierung** – Vorhandene IKOs werden wiederverwendet statt doppelt erstellt
+- **Farbige Handles** – Eingänge blau, Ausgänge grün, KO-Nodes grün
+- Logikseiten-Verwaltung mit Seitenbaum
+- KO-Bindungen für Ein-/Ausgänge mit verbreitertem Dialog
+- **Custom Blocks** – Eigene Python-Bausteine hochladen
+- **Block-Erhaltung** – Nicht ladbare Blocks bleiben in Config erhalten
 - Export/Import von Logik-Konfigurationen
 
+### Visualisierung
+- **VSE Widget System** – Visuelle Elemente für Schalter, Sensoren, Charts
+- **Server-Sync** – Automatische Speicherung, auch bei SPA-Navigation
+- **Drag & Drop** – Widgets frei positionieren und skalieren
+- **Mobile Panel** – Standalone-Ansicht für Smartphones
+- **Home Assistant Import** – YAML-Karten importieren
+
 ### System
-- **Einstellungen** - API-Konfiguration, Visu Backup/Restore
-- **Widget Templates** - Upload/Download von VSE Templates
-- **Mobile Panel** - QR-Code für iPhone/Android
-- **System-Update** - Paket-Upload mit automatischem Neustart
+- **Vollständiges Backup/Restore** – Exportiert/importiert alle Daten inkl. Custom Blocks, VSE-Templates, DB
+- **Einstellungen** – API-Konfiguration, Visu Backup/Restore
+- **System-Update** – Paket-Upload mit zuverlässigem Neustart (detached Script)
+- **Dark/Light Mode** – Vollständiger Theme-Support inkl. ReactFlow
+- **Berechtigungen** – Automatische Fix-Funktion
+- **Kein Browser-Cache-Problem** – `index.html` wird mit no-cache Headers ausgeliefert
 
 ## 📁 Verzeichnisstruktur
 
 ```
 /opt/knx-automation/
 ├── static/                    # Kompiliertes Frontend
-│   ├── index.html            # React Dashboard
-│   ├── assets/               # JS/CSS Bundles
+│   ├── index.html            # React Dashboard (no-cache)
+│   ├── assets/               # JS/CSS Bundles (content-hash)
 │   └── vse/                  # Widget Templates (JSON)
 ├── dashboard-src/             # React Source Code
 │   ├── src/
-│   │   ├── components/visu/  # Widget-Komponenten
+│   │   ├── components/       # UI-Komponenten
 │   │   ├── pages/            # Seiten
+│   │   ├── hooks/            # React Query Hooks
 │   │   └── services/         # API-Funktionen
-│   ├── package.json
-│   └── README.md             # Entwickler-Doku
+│   └── package.json
 ├── data/
-│   ├── visu_rooms.json       # Visualisierungs-Räume
-│   ├── logic_config.json     # Logik-Blöcke
-│   └── knx.db                # SQLite Datenbank
-├── api/routes.py              # Backend API
-├── main.py                    # FastAPI Server
-├── install.sh                 # Installations-Script
-└── README.md                  # Diese Datei
+│   ├── knx.db                # SQLite Datenbank
+│   ├── logic_config.json     # Logik-Konfiguration
+│   ├── visu_rooms.json       # Visualisierungs-Konfiguration
+│   ├── block_positions.json  # Positionen im Logik-Editor
+│   ├── custom_blocks/        # Eigene Python-Bausteine
+│   └── vse/                  # VSE Templates
+├── api/
+│   └── routes.py             # FastAPI Routes (APP_VERSION zentral)
+├── logic/
+│   ├── base.py               # BaseLogicBlock (permissive binding)
+│   ├── manager.py            # LogicManager (Block-Erhaltung)
+│   └── blocks/               # Eingebaute Bausteine
+├── knx/                       # KNX-Verbindung (xknx)
+├── main.py                    # FastAPI Server (no-cache SPA)
+├── install.sh                 # Installationsskript
+└── README.md
 ```
 
 ## 🔧 Installation
 
-### Erstinstallation
-
 ```bash
-# 1. Verzeichnis erstellen
-sudo mkdir -p /opt/knx-automation
-cd /opt/knx-automation
-
-# 2. Paket entpacken
-tar -xzf /tmp/knx-automation-v3.0.19.tar.gz --strip-components=1
-
-# 3. Installer ausführen (installiert Python-Pakete + Service)
+# 1. System-Pakete installieren
 sudo ./install.sh
 
-# 4. Service starten
+# 2. Dashboard-Paket entpacken
+cd /opt/knx-automation
+tar -xzf knx-automation-v3.2.0.tar.gz --strip-components=1
+
+# 3. Service starten
+systemctl start knx-automation
+
+# 4. Dashboard öffnen
+# http://<IP>:8000
+```
+
+## 🔄 Update
+
+### Über die Web-UI
+1. Dashboard öffnen → **System-Update**
+2. `.tar.gz` Paket hochladen
+3. Automatischer Neustart (detached Script)
+
+### Manuell
+```bash
+cd /opt/knx-automation
+systemctl stop knx-automation
+tar -xzf knx-automation-v3.2.0.tar.gz --strip-components=1 --overwrite
+find . -name "__pycache__" -exec rm -rf {} + 2>/dev/null
 systemctl start knx-automation
 ```
 
-### Update
+> **Hinweis:** Eigene Custom Blocks in `data/custom_blocks/` werden beim Update erhalten (Merge statt Replace).
 
+## 💾 Backup & Restore
+
+### Backup erstellen
+Dashboard → **System-Update** → **Backup herunterladen**
+
+Das Backup enthält:
+- Alle Gruppenadressen (KNX + IKO)
+- Logik-Konfiguration (Blöcke, Seiten, Bindings, Positionen)
+- Custom Blocks (.py-Dateien)
+- Visu-Räume mit allen Widgets
+- VSE-Templates
+- Einstellungen (.env)
+- SQLite-Datenbank
+
+### Backup einspielen
+Dashboard → **System-Update** → **Backup einspielen** → `.json` Datei auswählen
+
+Funktioniert auch auf einer frischen Neuinstallation.
+
+### API
 ```bash
-cd /opt/knx-automation
-tar -xzf /tmp/knx-automation-v3.0.19.tar.gz --strip-components=1
-systemctl restart knx-automation
+# Backup herunterladen
+curl -o backup.json http://<IP>:8000/api/v1/system/backup
+
+# Backup einspielen
+curl -X POST -F "file=@backup.json" http://<IP>:8000/api/v1/system/restore
 ```
-
-**Wichtig:** Nach dem Update im Browser `Strg+Shift+R`!
-
-## 🌐 URLs
-
-| URL | Beschreibung |
-|-----|--------------|
-| `http://SERVER:8000/` | Dashboard (Adressen) |
-| `http://SERVER:8000/visu` | Visualisierung (Editor) |
-| `http://SERVER:8000/panel` | Mobile Panel (Vollbild) |
-| `http://SERVER:8000/logic` | Logik-Editor |
-| `http://SERVER:8000/settings` | Einstellungen |
-| `http://SERVER:8000/update` | System-Update |
-| `http://SERVER:8000/api/v1/docs` | API-Dokumentation |
-
-## 📱 Mobile Panel (iPhone/Android)
-
-### Zum Home-Bildschirm hinzufügen:
-
-1. **URL öffnen:** `http://SERVER:8000/panel`
-2. **iPhone Safari:** Teilen-Button (□↑) → "Zum Home-Bildschirm"
-3. **Android Chrome:** Menü (⋮) → "Zum Startbildschirm hinzufügen"
-
-**QR-Code:** Einstellungen → Mobile Panel → "QR-Code anzeigen"
-
-## 🏠 Home Assistant YAML Import
-
-Du kannst Home Assistant Mushroom-Card YAML direkt importieren und in VSE-Widgets umwandeln.
-
-### So funktioniert's:
-
-1. **Visu öffnen:** `http://SERVER:8000/visu`
-2. **Import klicken** (in der Toolbar)
-3. **YAML einfügen** oder Datei hochladen
-4. **"YAML analysieren"** klicken
-5. **KO-Adressen zuweisen** für jede erkannte Karte
-6. **Importieren**
-
-### Unterstützte HA-Karten:
-
-- `custom:mushroom-template-card` → switch-card
-- `custom:mushroom-light-card` → switch-card
-- `custom:mushroom-entity-card` → switch-card
-- `custom:mushroom-title-card` → title-card
-- Andere Karten werden als switch-card importiert
-
-### Beispiel YAML:
-
-```yaml
-type: custom:mushroom-template-card
-entity: light.wohnzimmer
-primary: Wohnzimmer Licht
-icon: mdi:lightbulb
-tap_action:
-  action: toggle
-```
-
-Nach dem Import kannst du die KO-Adressen (Status + Schalten) zuweisen.
-
-## 📱 VSE Widget Templates
-
-### Verfügbare Widgets
-
-| Widget | Beschreibung | KO Bindings |
-|--------|--------------|-------------|
-| switch-card | Schalter (Mushroom-Style) | ko1: Status, ko2: Schaltadresse |
-| sensor-card | Sensor-Anzeige | ko1: Wert |
-| gauge-barometer | Rundes Gauge/Barometer | ko1: Primärwert, ko2: Sekundär (weißer Zeiger) |
-| strompreis-chart | 24h EPEX Preischart | ko1: JSON Array |
-| markdown-card | Titel mit Icon/Emoji | - (nur Label) |
-| compass-speedometer | Kompass mit Geschwindigkeit | ko1: Speed, ko2: Richtung blau, ko3: Richtung grau |
-| media-player | Sonos Musikplayer | ko1-13: Titel, Artist, Cover, Controls, Volume |
-| shape-separator | Linie/Form für Layout | - (nur visuelle Trennung) |
-| simple-value | Dynamische Wertanzeige | ko1: Wert |
-| simple-toggle | Dynamischer Schalter | ko1: Status, ko2: Schalten |
-
-### Widget Templates verwalten
-
-**Download:** Einstellungen → Widget Templates → "Alle Templates"  
-**Upload:** Einstellungen → Widget Templates → "Template hochladen"
-
-## 🛠️ Eigenes Widget erstellen
-
-### Option 1: Dynamisches Widget (OHNE Programmierung!)
-
-Einfach ein JSON-Template erstellen und hochladen - wird automatisch gerendert!
-
-```json
-{
-  "id": "temperatur-anzeige",
-  "name": "Temperatur Anzeige",
-  "description": "Zeigt Temperaturwert an",
-  "category": "sensors",
-  "width": 150,
-  "height": 100,
-  "render": "dynamic",
-  "inputs": {
-    "ko1": { "name": "Temperatur", "type": "number" }
-  },
-  "variables": {
-    "icon": { "name": "Icon", "type": "icon", "default": "thermometer" },
-    "unit": { "name": "Einheit", "type": "text", "default": "°C" },
-    "decimals": { "name": "Dezimalstellen", "type": "number", "default": 1 }
-  }
-}
-```
-
-**Unterstützte Variablen für dynamische Widgets:**
-
-| Variable | Beschreibung | Default |
-|----------|--------------|---------|
-| `icon` | MDI Icon-Name oder Emoji | - |
-| `icon_size` | Icon-Größe in px | 32 |
-| `icon_color` | Icon-Farbe (RGB) | 255,255,255 |
-| `unit` | Einheit (z.B. "°C") | - |
-| `decimals` | Dezimalstellen | 1 |
-| `font_size` | Wert-Schriftgröße | 24 |
-| `bg_color` | Hintergrund (RGB) | 40,40,40 |
-| `bg_opacity` | Deckkraft 0-100 | 10 |
-| `layout` | vertical/horizontal/icon-top | vertical |
-| `clickable` | "1" für Toggle | - |
-| `value_on` / `value_off` | Text für An/Aus | An/Aus |
-
-**render-Typen:** `"dynamic"`, `"generic"`, `"custom"` oder jeder unbekannte Typ.
-
-### Option 2: Custom React-Komponente
-
-Für komplexe Widgets (wie gauge-barometer, strompreis-chart):
-
-1. Komponente in `dashboard-src/src/components/visu/` erstellen
-2. In `VseRenderer.tsx` registrieren
-3. `npm run build` ausführen
-4. Nach `static/` kopieren
-
-Siehe `dashboard-src/README.md` für Details.
-
-## 🔌 API Endpoints
-
-### KNX
-- `GET /api/v1/status` - Systemstatus
-- `GET /api/v1/group-addresses` - Alle Gruppenadressen
-- `POST /api/v1/knx/send?group_address=X&value=Y` - Telegramm senden
-
-### Visualisierung
-- `GET /api/v1/visu/rooms` - Räume abrufen
-- `POST /api/v1/visu/rooms` - Räume speichern
-- `GET /api/v1/visu/export` - Backup herunterladen
-- `POST /api/v1/visu/import` - Backup hochladen
-
-### VSE Templates
-- `GET /api/v1/vse/templates` - Alle Templates auflisten
-- `POST /api/v1/vse/upload` - Template hochladen
-- `GET /api/v1/vse/download` - Alle Templates als ZIP
-
-### Logik
-- `GET /api/v1/logic/blocks` - Alle Blöcke
-- `GET /api/v1/logic/export` - Logik-Backup
-- `POST /api/v1/logic/import` - Logik wiederherstellen
 
 ## 📋 Changelog
 
-### v3.0.26 (2026-02-22)
-- **Neu:** "Berechtigungen korrigieren" Button auf System-Update Seite
-- **Neu:** Update-Seite zeigt Backend UND Frontend Version
-- **Neu:** Auto-Reload wenn Backend/Frontend Version unterschiedlich
-- **Neu:** Visu-Räume werden mit Backup gespeichert (visu_rooms.json.bak)
-- **Neu:** Bessere Fehlermeldungen beim Speichern
-- **Fix:** Update über Dashboard fixt automatisch Berechtigungen
-- **Fix:** Seite wird nach Update automatisch neu geladen
-- **Fix:** Speicherfehler werden mit Lösungshinweis angezeigt
+### v3.2.0 (2026-02-26)
+- **Vollständiges Backup/Restore** – Exportiert alle Daten inkl. Custom Blocks (.py), VSE-Templates, DB als JSON
+- **IKO-Deduplizierung** – `/group-addresses/ensure` Endpoint: erstellt nur wenn nicht vorhanden
+- **KO-Dialog verbreitert** – Zweizeilige Darstellung für lange IKO-Namen
+- **Visu-Speicherung repariert** – Save on unmount bei SPA-Navigation, Query-Cache Update
+- **Browser-Cache gelöst** – `index.html` mit no-cache HTTP-Headers und Meta-Tags
+- **Adresstabelle** – Feste Spaltenbreiten, Wert truncated mit Tooltip, Klick zum Kopieren
+- **Restart zuverlässig** – Detached Bash-Script mit nohup/setpgrp, überlebt Service-Stop
+- **Version zentral** – APP_VERSION Konstante statt 4x hardcoded, ein /system/restart Endpoint
+- **Handle-Farben** – Eingänge blau, Ausgänge grün, KO-Nodes grün
+- **Block-Erhaltung** – Nicht ladbare Blocks bleiben in logic_config.json erhalten
+- **Permissive Binding** – Unbekannte Input/Output Keys werden mit Warning akzeptiert
+- **URL-Encoding** – encodeURIComponent() auf alle instance_id API-Aufrufe
+- **AttributeError Fix** – getattr() für _name bei Block-Verbindungen
 
-### v3.0.25 (2026-02-22)
-- **Neu:** Beim Löschen von KOs werden automatisch alle Bindings in Bausteinen entfernt
-- **Fix:** IKO Format wird jetzt korrekt angewendet (neu gebaut)
+### v3.1.0 (2026-02-26)
+- **Neues Farbschema** – Blau statt Grün (hsl 199 89% 48%)
+- **Send-Dialog** – Werte an Bus/KO senden direkt aus der Adresstabelle
+- **Quick-Toggle** – AN/AUS Buttons für DPT-1 Adressen
+- **Logik-Sidebar** – Bausteinbibliothek fest links integriert mit Suchfunktion
+- **Drag-to-Connect** – Verbindungslinie mit automatischer IKO-Erstellung
+- **Custom Blocks Schutz** – Update überschreibt keine benutzer-hochgeladenen Bausteine
+- **Stabilität** – Atomare Config-Speicherung, Lock für concurrent writes
+- **Bare Except Fix** – Alle except: durch except Exception: ersetzt
+- **Dark Mode** – ReactFlow colorMode korrekt synchronisiert
 
-### v3.0.24 (2026-02-22)
-- **Neu:** IKO Format vereinfacht: `IKO:Nummer_Bausteinname:Port` (statt langer ID)
-- **Neu:** Sensor Card mit Rahmenfarbe, -stärke, -deckkraft und Hintergrund
-- **Neu:** Media Player komplett überarbeitet:
-  - Status: 1=Play, 2=Stop, 3=Pause (Sonos A2)
-  - Mute Button + Status
-  - Vor-/Zurückspulen (±30s)
-  - Lautstärke über Slider steuerbar
-- **Neu:** Switch Card: Badge Position einstellbar (X/Y Offset)
-- **Neu:** Switch Card: Badge ausblendbar
-- **Fix:** Switch Widget flickert nicht mehr (verbesserte optimistic UI)
-- **Fix:** KO-Auswahl: Texte werden nicht mehr abgeschnitten
-- **Fix:** Widget-Dialoge: Scrollbar und Speichern-Button immer sichtbar
+### v3.0.31
+- Dark Mode Fix für ReactFlow
+- Frontend/Backend Version-Sync
 
-### v3.0.23 (2026-02-22)
-- **Neu:** KO-Adressenauswahl mit Suche beim Hinzufügen/Bearbeiten von Widgets
-- **Fix:** Widget-Dialog passt sich jetzt an Bildschirmgröße an (max 85% Höhe)
+### v3.0.29
+- Initiales VSE Widget System
+- Logic Editor mit ReactFlow
+- KO/IKO Management
+- Visu-Editor mit Drag & Drop
 
-### v3.0.22 (2026-02-22)
-- **Neu:** Media Player mit separaten Play/Pause KOs (ko9=Play, ko14=Pause)
-- **Neu:** Eigene Kategorien hinzufügen und verwalten
-- **Neu:** Raum-Einstellungen bearbeiten (Hintergrundfarbe, Farbverlauf, Bilder)
-- **Neu:** Raum-Icons (Emoji oder MDI)
-- Vorbereitung für Multi-Device Visualisierungen
+## 🛠 Entwicklung
 
-### v3.0.21 (2026-02-22)
-- **Neu:** Visueller ColorPicker für Farbauswahl in VSE Widgets
-- **Fix:** Version-Anzeige in System-Update Seite
-- **Fix:** Datenbank readonly Problem dokumentiert
+```bash
+cd dashboard-src
+npm install
+npm run dev          # Development Server
+npm run build        # Production Build → ../static/
+```
 
-### v3.0.20 (2026-02-22)
-- **Neu:** Media Player Widget (Sonos) mit Cover, Steuerung, Lautstärke
-- **Neu:** Shape Separator Widget (Linien, Rechtecke, Kreise)
-- **Neu:** PWA Support - Fullscreen ohne Adressleiste auf iPhone/Android
-- **Neu:** Safe-Area-Insets für Notch-Bereich
-- README aktualisiert
+## 📡 API
 
-### v3.0.19 (2026-02-22)
-- **Fix:** Gauge-Widget min=0 funktioniert jetzt (vorher Fallback auf 960)
-- **Fix:** Mobile Panel lädt Räume vom Server statt localStorage
-- **Neu:** Compass-Speedometer Widget
-- **Neu:** Logik Export/Import in Einstellungen
-- README komplett überarbeitet mit HA Import Anleitung
+Base URL: `http://<host>:8000/api/v1`
 
-### v3.0.18
-- Panel lädt jetzt korrekt vom Server-API
-- Template-Pfade korrigiert
-
-### v3.0.17
-- Compass-Speedometer Widget hinzugefügt
-
-### v3.0.16
-- Logging reduziert (weniger Spam)
-- Source Code im Paket (dashboard-src/)
-
-### v3.0.15
-- Explizite Routen für /panel, /visu, etc.
-
-### v3.0.11
-- VseDynamicWidget für Widgets ohne Programmierung
-
-### v3.0.10
-- Widget Template Upload/Download
-- Mobile Panel mit QR-Code
-
-### v3.0.7
-- Strompreis-Chart Zeitzonenfix (EPEX)
-
-### v3.0.0
-- Komplettes Redesign mit React/TypeScript
+| Endpunkt | Methode | Beschreibung |
+|---|---|---|
+| `/status` | GET | Systemstatus |
+| `/group-addresses` | GET | Alle Gruppenadressen |
+| `/group-addresses` | POST | Adresse erstellen |
+| `/group-addresses/ensure` | POST | Adresse erstellen oder vorhandene zurückgeben |
+| `/group-addresses/{addr}` | PUT | Adresse bearbeiten |
+| `/group-addresses/{addr}` | DELETE | Adresse löschen |
+| `/knx/send` | POST | Wert an KNX senden |
+| `/logic/blocks` | GET | Alle Logikblöcke |
+| `/logic/blocks` | POST | Block erstellen |
+| `/logic/blocks/{id}/bind` | POST | KO binden |
+| `/logic/available` | GET | Verfügbare Blocktypen |
+| `/logic/custom-blocks` | GET | Custom Block Dateien |
+| `/logic/custom-blocks/upload` | POST | Block hochladen (.py) |
+| `/visu/rooms` | GET | Visu-Räume laden |
+| `/visu/rooms` | POST | Visu-Räume speichern |
+| `/system/update/upload` | POST | Update-Paket installieren |
+| `/system/restart` | POST | System neustarten |
+| `/system/backup` | GET | Vollständiges Backup herunterladen |
+| `/system/restore` | POST | Backup einspielen |
 
 ## 📄 Lizenz
 
-Proprietär - Alle Rechte vorbehalten.
+Privat – Alle Rechte vorbehalten.
