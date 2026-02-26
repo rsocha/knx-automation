@@ -186,6 +186,40 @@
       }
     },
     {
+      "instance_id": "20035_EPEXSpotPrice_5_202041",
+      "block_type": "EPEXSpotPrice",
+      "page_id": "page_698d3010",
+      "enabled": true,
+      "input_bindings": {},
+      "output_bindings": {
+        "A17": "IKO:3_EPEX Spot Preis:A17"
+      },
+      "input_values": {
+        "E1": true,
+        "E2": 300,
+        "E3": 1,
+        "E4": 0.0,
+        "E5": false
+      }
+    },
+    {
+      "instance_id": "20033_ShellyPlus1PM_6_203326",
+      "block_type": "ShellyPlus1PM",
+      "page_id": "page_8b1124c5",
+      "enabled": true,
+      "input_bindings": {},
+      "output_bindings": {},
+      "input_values": {
+        "E1": true,
+        "E2": "192.168.0.76",
+        "E3": 30,
+        "E4": -1,
+        "E5": false,
+        "E6": 0,
+        "E7": false
+      }
+    },
+    {
       "instance_id": "20035_EPEXSpotPrice_4_090044",
       "block_type": "EPEXSpotPrice",
       "page_id": "page_698d3010",

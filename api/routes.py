@@ -986,6 +986,20 @@ async def create_group_address(address: GroupAddressCreate):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.post("/group-addresses/ensure")
+async def ensure_group_address(address: GroupAddressCreate):
+    """Create IKO/address if it doesn't exist, return existing if it does. Idempotent."""
+    existing = await db_manager.get_group_address(address.address)
+    if existing:
+        return {"address": existing.address, "name": existing.name, "created": False, "status": "exists"}
+    try:
+        created = await db_manager.create_group_address(address)
+        return {"address": created.address, "name": created.name, "created": True, "status": "created"}
+    except ValueError:
+        # Race condition — someone else created it
+        existing = await db_manager.get_group_address(address.address)
+        return {"address": existing.address if existing else address.address, "created": False, "status": "exists"}
+
 @router.put("/group-addresses/{address:path}")
 async def update_group_address(address: str, data: GroupAddressCreate):
     """Update an existing group address"""
