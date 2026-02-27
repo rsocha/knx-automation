@@ -5,21 +5,24 @@
       "name": "NETATMO",
       "description": "",
       "blocks": [],
-      "created_at": "2026-02-08T06:53:53.717852"
+      "created_at": "2026-02-08T06:53:53.717852",
+      "room": "Wetter"
     },
     {
       "id": "page_698d3010",
       "name": "EPEX_SPOT",
       "description": "",
       "blocks": [],
-      "created_at": "2026-02-08T16:48:39.357913"
+      "created_at": "2026-02-08T16:48:39.357913",
+      "room": "Energie"
     },
     {
       "id": "page_be212972",
       "name": "FRONIUS",
       "description": "",
       "blocks": [],
-      "created_at": "2026-02-09T06:13:45.520429"
+      "created_at": "2026-02-09T06:13:45.520429",
+      "room": "Energie"
     },
     {
       "id": "page_8b1124c5",
@@ -40,14 +43,16 @@
       "name": "EcoWitt",
       "description": "",
       "blocks": [],
-      "created_at": "2026-02-14T15:52:41.119575"
+      "created_at": "2026-02-14T15:52:41.119575",
+      "room": "Wetter"
     },
     {
-      "id": "page_2ea86949",
-      "name": "Seite 7",
+      "id": "page_1a09b17e",
+      "name": "go-eCharger",
       "description": "",
+      "room": "Energie",
       "blocks": [],
-      "created_at": "2026-02-26T09:00:22.272056"
+      "created_at": "2026-02-27T10:44:11.203968"
     }
   ],
   "blocks": [
@@ -106,7 +111,8 @@
         "A4": "IKO:1_Fronius Gen24 Solar API:A4",
         "A12": "IKO:1_Fronius Gen24 Solar API:A12",
         "A16": "IKO:1_Fronius Gen24 Solar API:A16",
-        "A8": "IKO:1_Fronius Gen24 Solar API:A8"
+        "A8": "IKO:1_Fronius Gen24 Solar API:A8",
+        "A14": "IKO:1_Fronius Gen24 Solar API:A14"
       },
       "input_values": {
         "E1": true,
@@ -180,7 +186,7 @@
       "input_values": {
         "E1": true,
         "E2": 300,
-        "E3": "557d033d29977ed2858b4629|b324e9d69d390c4301686e47927dbfa1",
+        "E3": "557d033d29977ed2858b4629|8c0d93f9270e190ca40ae8278363b462",
         "E4": "",
         "E5": false
       }
@@ -192,7 +198,8 @@
       "enabled": true,
       "input_bindings": {},
       "output_bindings": {
-        "A17": "IKO:3_EPEX Spot Preis:A17"
+        "A17": "IKO:3_EPEX Spot Preis:A17",
+        "A7": "IKO:5_EPEX Spot Preis:A7"
       },
       "input_values": {
         "E1": true,
@@ -220,20 +227,25 @@
       }
     },
     {
-      "instance_id": "20035_EPEXSpotPrice_4_090044",
-      "block_type": "EPEXSpotPrice",
-      "page_id": "page_698d3010",
+      "instance_id": "20040_GoEChargerAPI2_7_104415",
+      "block_type": "GoEChargerAPI2",
+      "page_id": "page_1a09b17e",
       "enabled": true,
       "input_bindings": {},
-      "output_bindings": {
-        "A17": "IKO:3_EPEX Spot Preis:A17"
-      },
+      "output_bindings": {},
       "input_values": {
         "E1": true,
-        "E2": 300,
-        "E3": 1,
-        "E4": 0.0,
-        "E5": false
+        "E2": "192.168.0.100",
+        "E3": 5,
+        "E4": false,
+        "E5": true,
+        "E6": 0,
+        "E7": 16,
+        "E8": 0,
+        "E9": false,
+        "E10": 0.0,
+        "E11": 0.0,
+        "E12": 0.0
       }
     }
   ]

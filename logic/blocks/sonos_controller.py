@@ -1,10 +1,10 @@
 """
-SONOS Controller LogicBlock (v1.3) - All-in-One
+SONOS Controller LogicBlock (v1.2) - All-in-One
 
 Steuert und überwacht einen Sonos-Lautsprecher über die lokale UPnP/SOAP-API (Port 1400).
 
 Funktionen:
-- Play/Pause/Stop/Next/Previous mit Auto-Reset
+- Play/Pause/Stop/Next/Previous
 - Volume, Bass, Treble, Loudness, Mute, Playmode, Crossfade
 - Radio/Stream/Favoriten/Streaming-Container abspielen
 - TTS/Ansagen mit automatischer Zustandswiederherstellung
@@ -13,10 +13,6 @@ Funktionen:
 - Genre-basierte Farbanimation (5-Farben-Paletten)
 - Favoriten-Cache, Gruppen-Erkennung, Streaming-Dienst Erkennung
 - Reconnect mit exponentiellem Backoff
-
-Neu in v1.3:
-- Auto-Reset: Play setzt Pause/Stop auf 0, Pause setzt Play/Stop auf 0, etc.
-- Kein Button-to-Pulse mehr nötig!
 
 Basiert auf dem EDOMI SONOS Controller v8.5 (19000508), portiert auf das
 asynchrone LogicBlock-Framework.
@@ -911,9 +907,9 @@ class SonosSoap:
 class SonosController(LogicBlock):
     """SONOS Controller via lokale UPnP/SOAP-API"""
 
-    ID = 200352
+    ID = 20035
     NAME = "SONOS Controller"
-    DESCRIPTION = "Steuert und überwacht Sonos über lokale UPnP/SOAP-API (v1.3 mit Auto-Reset)"
+    DESCRIPTION = "Steuert und überwacht Sonos über lokale UPnP/SOAP-API"
     VERSION = "1.4"
     AUTHOR = "Reinhard Socha"
     CATEGORY = "Audio"
@@ -922,11 +918,11 @@ class SonosController(LogicBlock):
         'E1':  {'name': 'Start/Stop', 'type': 'bool', 'default': True},
         'E2':  {'name': 'Intervall (s)', 'type': 'int', 'default': 1},
         'E3':  {'name': 'IP-Adresse', 'type': 'str', 'default': '192.168.0.15'},
-        'E4':  {'name': 'Play', 'type': 'bool', 'default': False, 'trigger': True},
-        'E5':  {'name': 'Pause', 'type': 'bool', 'default': False, 'trigger': True},
-        'E6':  {'name': 'Stop', 'type': 'bool', 'default': False, 'trigger': True},
-        'E7':  {'name': 'Next', 'type': 'bool', 'default': False, 'trigger': True},
-        'E8':  {'name': 'Previous', 'type': 'bool', 'default': False, 'trigger': True},
+        'E4':  {'name': 'Play', 'type': 'bool', 'default': ''},
+        'E5':  {'name': 'Pause', 'type': 'bool', 'default': False},
+        'E6':  {'name': 'Stop', 'type': 'bool', 'default': ''},
+        'E7':  {'name': 'Next', 'type': 'bool', 'default': False},
+        'E8':  {'name': 'Previous', 'type': 'bool', 'default': False},
         'E9':  {'name': 'Volume', 'type': 'int', 'default': -1},
         'E10': {'name': 'Loudness', 'type': 'int', 'default': -1},
         'E11': {'name': 'Bass', 'type': 'int', 'default': -100},
@@ -987,20 +983,29 @@ class SonosController(LogicBlock):
     SLEEP_MEDIA_UPDATE = 0.5
 
     # Eingänge die IMMER triggern (auch bei gleichem Wert), wie in PHP 'refresh'
-    TRIGGER_ALWAYS_INPUTS = {'E16', 'E18'}
+    # E4=Play, E5=Pause, E6=Stop: sollen IMMER den Befehl senden, egal welcher Wert
+    TRIGGER_ALWAYS_INPUTS = {'E4', 'E5', 'E6', 'E7', 'E8', 'E16', 'E18'}
 
     def set_input(self, key, value):
-        """Override: E16/E18 triggern immer, auch bei gleichem Wert (wie PHP refresh)"""
+        """Override: Trigger-Inputs lösen IMMER aus (auch bei gleichem Wert)"""
         if key in self.TRIGGER_ALWAYS_INPUTS:
             # Type conversion wie in Base
             input_type = self.INPUTS.get(key, {}).get('type', 'str')
             try:
-                if input_type == 'str':
+                if input_type == 'bool':
+                    if isinstance(value, str):
+                        value = value.lower() in ('1', 'true', 'on', 'ein')
+                    else:
+                        value = bool(value)
+                elif input_type == 'int':
+                    value = int(float(value)) if value is not None else 0
+                elif input_type == 'str':
                     value = str(value) if value is not None else ''
             except (ValueError, TypeError):
                 pass
             self._input_values[key] = value
-            if self._enabled and value:
+            # Immer triggern - unabhängig vom Wert
+            if self._enabled:
                 self._trigger_execute(key)
             return True
         return super().set_input(key, value)
@@ -1070,38 +1075,8 @@ class SonosController(LogicBlock):
         }
 
         if triggered_by in command_map:
-            # Trigger-Befehle (Play/Pause/Stop/Next/Previous)
-            # Akzeptiere sowohl steigende Flanke (0→1) als auch wiederholte 1
-            if triggered_by in ('E4', 'E5', 'E6', 'E7', 'E8'):
-                input_value = self.get_input(triggered_by)
-                # Nur bei 1 ausführen (nicht bei 0)
-                if not input_value:
-                    return
-                # Debounce: Nur ausführen wenn mindestens 0.1s seit letztem Befehl
-                import time
-                current_time = time.time()
-                last_trigger_key = f'_last_trigger_{triggered_by}'
-                last_trigger_time = getattr(self, last_trigger_key, 0)
-                
-                # Wenn der gleiche Eingang in den letzten 0.1s getriggert wurde, ignorieren
-                # Das verhindert Doppel-Trigger durch Prellen oder System-Fehler
-                if current_time - last_trigger_time < 0.1:
-                    return
-                    
-                # Timestamp speichern
-                setattr(self, last_trigger_key, current_time)
-                
-                # AUTO-RESET: Setze alle anderen Trigger auf 0
-                # Wenn Play getriggert wird → Pause und Stop auf 0
-                # Wenn Pause getriggert wird → Play und Stop auf 0
-                # Wenn Stop getriggert wird → Play und Pause auf 0
-                trigger_inputs = {'E4': 'Play', 'E5': 'Pause', 'E6': 'Stop', 'E7': 'Next', 'E8': 'Previous'}
-                for other_input in trigger_inputs:
-                    if other_input != triggered_by:
-                        # Setze nur die Transport-Befehle zurück (Play/Pause/Stop)
-                        if triggered_by in ('E4', 'E5', 'E6') and other_input in ('E4', 'E5', 'E6'):
-                            self.set_input(other_input, False)
-                            logger.debug(f"{self.instance_id}: Auto-Reset {trigger_inputs[other_input]} → 0")
+            # Play/Pause/Stop/Next/Previous: Immer ausführen (TRIGGER_ALWAYS_INPUTS)
+            # Kein Wert-Check nötig - set_input Override triggert immer
 
             self._pending_command = command_map[triggered_by]
             asyncio.create_task(self._process_command())
@@ -1142,10 +1117,11 @@ class SonosController(LogicBlock):
         if not self._is_online:
             return
 
-        # Transport-Status
+        # Transport-Status - IMMER setzen wenn A2 leer/None ist
         transport = await self._soap.get_transport_info()
         if transport is not None:
-            if transport != self._last_transport:
+            current_a2 = self.get_output('A2')
+            if transport != self._last_transport or current_a2 is None or current_a2 == '' or current_a2 == ' ':
                 self.set_output('A2', transport)
                 self._last_transport = transport
 
@@ -1185,10 +1161,19 @@ class SonosController(LogicBlock):
         try:
             if command == 'play':
                 await self._soap.play()
+                await asyncio.sleep(self.SLEEP_AFTER_COMMAND)
+                self.set_output('A2', 1)
+                self._last_transport = 1
             elif command == 'pause':
                 await self._soap.pause()
+                await asyncio.sleep(self.SLEEP_AFTER_COMMAND)
+                self.set_output('A2', 2)
+                self._last_transport = 2
             elif command == 'stop':
                 await self._soap.stop()
+                await asyncio.sleep(self.SLEEP_AFTER_COMMAND)
+                self.set_output('A2', 3)
+                self._last_transport = 3
             elif command == 'next':
                 await self._soap.next()
             elif command == 'previous':

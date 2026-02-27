@@ -51,6 +51,7 @@ from api import router
 from knx import knx_manager
 from utils import db_manager
 from logic import logic_manager
+from api.chart_recorder import chart_recorder
 
 
 async def on_telegram_received(data):
@@ -86,20 +87,24 @@ async def lifespan(app: FastAPI):
     # Register callback to forward telegrams to logic
     knx_manager.register_telegram_callback(on_telegram_received)
     
+    # Start chart history recorder
+    await chart_recorder.start(db_manager)
+    
     yield
     
     logger.info("Shutting down...")
+    await chart_recorder.stop()
     await logic_manager.shutdown()
     await knx_manager.disconnect()
 
-app = FastAPI(title="KNX Automation System", version="3.2.0", lifespan=lifespan)
+app = FastAPI(title="KNX Automation System", version="3.4.3", lifespan=lifespan)
 app.include_router(router, prefix="/api/v1")
 
 dashboard_path = Path(__file__).parent / "static"
 
 # SPA Routes - serve index.html for all frontend routes
 # CRITICAL: no-cache on index.html so browser always gets latest JS/CSS references after updates
-SPA_ROUTES = ["/", "/panel", "/visu", "/logic", "/log", "/settings", "/update"]
+SPA_ROUTES = ["/", "/panel", "/visu", "/logic", "/log", "/settings", "/update", "/charts", "/addresses"]
 
 def serve_spa():
     """Serve index.html with no-cache headers so updates are always picked up"""
@@ -141,6 +146,14 @@ async def settings():
 
 @app.get("/update")
 async def update():
+    return serve_spa()
+
+@app.get("/charts")
+async def charts():
+    return serve_spa()
+
+@app.get("/addresses")
+async def addresses():
     return serve_spa()
 
 # Mount static files AFTER explicit routes

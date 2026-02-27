@@ -127,7 +127,7 @@ class LogicManager:
             raise
     
     async def upload_block_file(self, filename: str, content: bytes) -> Dict:
-        """Upload and register a new custom block file"""
+        """Upload and register a new custom block file, auto-restart running instances"""
         # Sanitize filename
         safe_name = "".join(c for c in filename if c.isalnum() or c in "._-").rstrip()
         if not safe_name.endswith('.py'):
@@ -146,13 +146,94 @@ class LogicManager:
         try:
             loaded = await self._load_block_file(file_path)
             if loaded:
-                return {"status": "success", "file": safe_name, "blocks": loaded}
+                # Auto-restart running instances of updated block types
+                loaded_classes = [c.strip() for c in loaded.split(",")]
+                restarted = await self._restart_instances_of_types(loaded_classes)
+                result = {"status": "success", "file": safe_name, "loaded_classes": loaded_classes}
+                if restarted:
+                    result["restarted"] = restarted
+                    logger.info(f"Auto-restarted {len(restarted)} block instances: {restarted}")
+                return result
             else:
                 return {"status": "warning", "file": safe_name, "message": "No LogicBlock classes found"}
         except Exception as e:
             # Remove file if it failed to load
             file_path.unlink(missing_ok=True)
             raise ValueError(f"Invalid block file: {e}")
+    
+    async def _restart_instances_of_types(self, class_names: list) -> list:
+        """Restart all running instances whose block_type matches one of the class_names.
+        Preserves bindings, page_id and input values."""
+        restarted = []
+        for instance_id, block in list(self._blocks.items()):
+            block_type = type(block).__name__
+            if block_type not in class_names:
+                continue
+            
+            logger.info(f"Auto-restarting {instance_id} (type: {block_type})")
+            
+            # Save state
+            saved_input_bindings = dict(block._input_bindings)
+            saved_output_bindings = dict(block._output_bindings)
+            saved_input_values = dict(block._input_values)
+            saved_page_id = getattr(block, '_page_id', None)
+            
+            # Stop old instance
+            try:
+                result = block.on_stop()
+                if asyncio.iscoroutine(result):
+                    await result
+            except Exception as e:
+                logger.warning(f"Error stopping {instance_id}: {e}")
+            
+            # Remove from address mappings
+            for addr, bindings in list(self._address_to_blocks.items()):
+                self._address_to_blocks[addr] = [(bid, key) for bid, key in bindings if bid != instance_id]
+                if not self._address_to_blocks[addr]:
+                    del self._address_to_blocks[addr]
+            
+            # Create new instance with updated class
+            cls = self._custom_block_classes.get(block_type)
+            if not cls:
+                logger.error(f"Class {block_type} not found after reload, skipping {instance_id}")
+                continue
+            
+            new_block = cls(instance_id)
+            new_block._output_callback = self._on_block_output
+            new_block._page_id = saved_page_id
+            
+            # Restore bindings
+            new_block._input_bindings = saved_input_bindings
+            new_block._output_bindings = saved_output_bindings
+            
+            # Restore address mappings
+            for input_key, addr in saved_input_bindings.items():
+                if addr not in self._address_to_blocks:
+                    self._address_to_blocks[addr] = []
+                self._address_to_blocks[addr].append((instance_id, input_key))
+            
+            # Replace in blocks dict
+            self._blocks[instance_id] = new_block
+            
+            # Start new instance
+            try:
+                result = new_block.on_start()
+                if asyncio.iscoroutine(result):
+                    await result
+            except Exception as e:
+                logger.error(f"Error starting {instance_id}: {e}")
+            
+            # Restore input values (triggers execute for each)
+            for key, val in saved_input_values.items():
+                try:
+                    new_block.set_input(key, val)
+                except Exception:
+                    pass
+            
+            restarted.append(instance_id)
+            logger.info(f"Restarted {instance_id} with new {block_type} class")
+        
+        return restarted
     
     def get_available_blocks(self) -> List[Dict]:
         """Get list of all available block types (builtin + custom)"""
@@ -403,7 +484,9 @@ class LogicManager:
         for instance_id, input_key in bindings:
             block = self._blocks.get(instance_id)
             if block and block._enabled:
-                block.set_input(input_key, value)
+                # Use force_trigger=True so repeated same-value sends still trigger
+                # (important for Play/Pause/Stop buttons that always send 1)
+                block.set_input(input_key, value, force_trigger=True)
     
     def _on_block_output(self, instance_id: str, output_key: str, value: Any):
         """Called when a block sets an output value"""
@@ -453,7 +536,7 @@ class LogicManager:
     
     # ============ PAGES ============
     
-    def create_page(self, page_id: str, name: str, description: str = "") -> Dict:
+    def create_page(self, page_id: str, name: str, description: str = "", room: str = "") -> Dict:
         """Create a new logic page"""
         if page_id in self._pages:
             raise ValueError(f"Page {page_id} already exists")
@@ -462,10 +545,24 @@ class LogicManager:
             'id': page_id,
             'name': name,
             'description': description,
+            'room': room,
             'blocks': [],
             'created_at': datetime.now().isoformat()
         }
         return self._pages[page_id]
+    
+    def update_page(self, page_id: str, name: str = None, description: str = None, room: str = None) -> Optional[Dict]:
+        """Update a logic page's name, description, or room"""
+        page = self._pages.get(page_id)
+        if not page:
+            return None
+        if name is not None:
+            page['name'] = name
+        if description is not None:
+            page['description'] = description
+        if room is not None:
+            page['room'] = room
+        return page
     
     def get_page(self, page_id: str) -> Optional[Dict]:
         return self._pages.get(page_id)

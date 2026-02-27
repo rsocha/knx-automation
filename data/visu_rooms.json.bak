@@ -19,10 +19,10 @@
           "var12": 17,
           "var25": 13
         },
-        "x": 4,
-        "y": 24,
-        "widthOverride": 154,
-        "heightOverride": 132
+        "x": 13,
+        "y": 89,
+        "widthOverride": 122,
+        "heightOverride": 108
       },
       {
         "id": "13cc9aa2-31bd-424d-82f0-6e2f7423df16",
@@ -62,15 +62,17 @@
         "label": "Aussen Temp.",
         "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
         "koBindings": {
-          "ko1": "IKO/ECOwitt/A1"
+          "ko1": "IKO:2_Ecowitt WS90:A1"
         },
         "variableValues": {
           "var2": "Aussen Temp.",
           "var4": 26,
           "var12": 25
         },
-        "x": 175,
-        "y": 28
+        "x": 160,
+        "y": 24,
+        "widthOverride": 160,
+        "heightOverride": 40
       },
       {
         "id": "a88cd009-a19f-47c1-9ef5-af5a40fdbc8a",
@@ -80,9 +82,17 @@
         "koBindings": {
           "ko1": "IKO:1_Fronius Gen24 Solar API:A8"
         },
-        "variableValues": {},
-        "x": 189,
-        "y": 114
+        "variableValues": {
+          "var2": "Batterie",
+          "var4": 25,
+          "var11": "24,242,38",
+          "var12": 25,
+          "unit": "%"
+        },
+        "x": 12,
+        "y": 25,
+        "widthOverride": 140,
+        "heightOverride": 40
       }
     ]
   },
@@ -104,7 +114,8 @@
           "ko13": "IKO:200352_SonosController_5_062328:A3",
           "ko3": "IKO:200352_SonosController_5_062328:A6",
           "ko5": "IKO:5_SONOS Controller:A2",
-          "ko6": "IKO:200352_SonosController_5_062328:A15"
+          "ko6": "IKO:200352_SonosController_5_062328:A15",
+          "ko14": "IKO:200352_SonosController_5_062328:E5"
         },
         "variableValues": {},
         "x": 0,
@@ -118,5 +129,11 @@
       "color": "0,0,0",
       "opacity": 100
     }
+  },
+  {
+    "id": "42def95b-86da-4fd0-a7d5-b3a6050a580b",
+    "name": "Schlafzimmer",
+    "category": "Schlafbereich",
+    "widgets": []
   }
 ]

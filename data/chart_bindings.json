@@ -1,0 +1,32 @@
+{
+  "pv": {
+    "address": "IKO:1_Fronius Gen24 Solar API:A4",
+    "unit": "",
+    "factor": 1
+  },
+  "consumption": {
+    "address": "IKO:1_Fronius Gen24 Solar API:A14",
+    "unit": "",
+    "factor": 1
+  },
+  "temperatureIndoor": {
+    "address": "IKO:20032_NetatmoHomecoach_2_110346:A5",
+    "unit": "",
+    "factor": 1
+  },
+  "temperatureOutdoor": {
+    "address": "IKO:2_Ecowitt WS90:A1",
+    "unit": "",
+    "factor": 1
+  },
+  "humidity": {
+    "address": "IKO:2_Ecowitt WS90:A2",
+    "unit": "",
+    "factor": 1
+  },
+  "electricityPrice": {
+    "address": "IKO:5_EPEX Spot Preis:A7",
+    "unit": "",
+    "factor": 1
+  }
+}

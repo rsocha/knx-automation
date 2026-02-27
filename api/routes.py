@@ -20,7 +20,7 @@ from logic.manager import ALL_BUILTIN_BLOCKS
 logger = logging.getLogger(__name__)
 
 # Single source of truth for version — update HERE only
-APP_VERSION = "3.2.0"
+APP_VERSION = "3.4.3"
 router = APIRouter()
 
 
@@ -39,6 +39,12 @@ class PageCreate(BaseModel):
     name: str
     page_id: Optional[str] = None
     description: Optional[str] = None
+    room: Optional[str] = None
+
+class PageUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    room: Optional[str] = None
 
 @router.get("/health")
 async def health_check():
@@ -1214,8 +1220,13 @@ async def send_telegram(group_address: str = Query(...), value: str = Query(...)
         addr = await db_manager.get_group_address(group_address)
         
         if addr and addr.is_internal:
-            # Internal address - just update value in DB, no KNX telegram
+            # Internal address - update value in DB AND notify logic manager
             await db_manager.update_group_address_value(group_address, value)
+            # Critical: forward to logic manager so blocks receive the value
+            try:
+                await logic_manager.on_address_changed(group_address, value)
+            except Exception as e:
+                logger.warning(f"Logic forward for IKO {group_address}: {e}")
             return {"status": "set", "address": group_address, "value": value, "internal": True}
         
         # KNX address - send telegram
@@ -1237,6 +1248,11 @@ async def set_internal_value(address: str = Query(...), value: str = Query(...))
     """Set value for internal address (or any address without sending KNX telegram)"""
     try:
         await db_manager.update_group_address_value(address, value)
+        # Also notify logic manager
+        try:
+            await logic_manager.on_address_changed(address, value)
+        except Exception as e:
+            logger.warning(f"Logic forward for {address}: {e}")
         return {"status": "set", "address": address, "value": value}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -2078,7 +2094,7 @@ async def create_page(data: PageCreate):
         # Generate page_id if not provided or empty
         page_id = data.page_id if data.page_id else f"page_{str(uuid.uuid4())[:8]}"
         logger.info(f"Using page_id: {page_id}")
-        page = logic_manager.create_page(page_id, data.name, data.description or "")
+        page = logic_manager.create_page(page_id, data.name, data.description or "", data.room or "")
         logger.info(f"Page created: {page}")
         await logic_manager.save_to_db()
         return page
@@ -2088,6 +2104,15 @@ async def create_page(data: PageCreate):
     except Exception as e:
         logger.error(f"Error creating page: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.patch("/logic/pages/{page_id}")
+async def update_page(page_id: str, data: PageUpdate):
+    """Update a page's name, description, or room"""
+    page = logic_manager.update_page(page_id, name=data.name, description=data.description, room=data.room)
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    await logic_manager.save_to_db()
+    return page
 
 @router.get("/logic/pages/{page_id}")
 async def get_page(page_id: str):
@@ -2169,6 +2194,67 @@ async def update_custom_block_code(filename: str, data: dict):
         raise HTTPException(status_code=404, detail="File not found")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+# ============ CHART HISTORY API ============
+
+from api.chart_recorder import chart_recorder
+
+@router.get("/charts/bindings")
+async def get_chart_bindings():
+    """Get chart KO bindings."""
+    return chart_recorder.load_bindings()
+
+@router.post("/charts/bindings")
+async def save_chart_bindings(bindings: dict = Body(...)):
+    """Save chart KO bindings (also used by recorder)."""
+    chart_recorder.save_bindings(bindings)
+    return {"status": "saved", "count": len(bindings)}
+
+@router.get("/charts/history")
+async def get_chart_history(
+    metrics: str = "pv,consumption,temperatureIndoor,temperatureOutdoor,humidity,electricityPrice",
+    hours: int = 24,
+    bucket_minutes: int = 15
+):
+    """Get aggregated historical chart data.
+    
+    Args:
+        metrics: comma-separated metric keys
+        hours: how many hours back (default 24)
+        bucket_minutes: aggregation bucket size (default 15)
+    """
+    metric_list = [m.strip() for m in metrics.split(",") if m.strip()]
+    return chart_recorder.get_aggregated_history(metric_list, hours, bucket_minutes)
+
+@router.get("/charts/history/raw")
+async def get_chart_history_raw(
+    metrics: str = "pv,consumption",
+    hours: int = 24
+):
+    """Get raw (non-aggregated) historical data."""
+    metric_list = [m.strip() for m in metrics.split(",") if m.strip()]
+    return chart_recorder.get_history(metric_list, hours)
+
+@router.get("/charts/daily")
+async def get_chart_daily(
+    metrics: str = "pv,consumption",
+    days: int = 7
+):
+    """Get daily aggregated totals for weekly view."""
+    metric_list = [m.strip() for m in metrics.split(",") if m.strip()]
+    return chart_recorder.get_daily_totals(metric_list, days)
+
+@router.get("/charts/stats")
+async def get_chart_stats():
+    """Get recording statistics."""
+    return chart_recorder.get_stats()
+
+@router.post("/charts/record-now")
+async def trigger_chart_record():
+    """Manually trigger a recording cycle."""
+    recorded = await chart_recorder.record_once()
+    return {"status": "recorded", "count": recorded}
 
 
 # ============ SYSTEM API ============
