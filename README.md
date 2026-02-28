@@ -1,4 +1,11 @@
-# KNX Automation v3.5.0
+# KNX Automation
+
+![Version](https://img.shields.io/badge/version-3.6.0-blue)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Raspberry_Pi_%7C_Linux-orange)](https://www.raspberrypi.com/)
+[![KNX](https://img.shields.io/badge/KNX-IP_Tunneling-red)](https://www.knx.org/)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)](https://www.python.org/)
+[![React](https://img.shields.io/badge/React-18-blue?logo=react)](https://react.dev/)
 
 Webbasierte KNX-Hausautomation mit visueller Logik-Engine, Dashboard und integrierter Gerätesteuerung.
 
@@ -6,6 +13,7 @@ Webbasierte KNX-Hausautomation mit visueller Logik-Engine, Dashboard und integri
 
 ### Dashboard & Visualisierung
 - **VSE-Visualisierung** – Eigene Räume mit Widgets (Schalter, Dimmer, Jalousien, Mediaplayer, Szenen)
+- **Custom Cards** – Frei konfigurierbare Karten mit KO-Bindung, bedingter Formatierung und Glassmorphic Design
 - **Energie-Dashboard** – PV-Ertrag, Batteriespeicher, Verbrauch und Strompreis (EPEX Spot) in Echtzeit
 - **Charts** – Historische Diagramme für Energie, Temperatur, Luftfeuchtigkeit mit konfigurierbaren KO-Bindungen
 
@@ -59,7 +67,7 @@ Webbasierte KNX-Hausautomation mit visueller Logik-Engine, Dashboard und integri
 
 ### Schnellinstallation
 ```bash
-tar xzf knx-automation-v3.5.0.tar.gz
+tar xzf knx-automation-v3.6.0.tar.gz
 cd knx-automation
 chmod +x install.sh
 sudo ./install.sh
@@ -77,7 +85,7 @@ Einstellungen → Update → `.tar.gz` hochladen → Automatischer Neustart
 ### Manuell
 ```bash
 cd /opt/knx-automation
-tar xzf knx-automation-v3.5.0.tar.gz --strip-components=1 --overwrite
+tar xzf knx-automation-v3.6.0.tar.gz --strip-components=1 --overwrite
 find . -name "__pycache__" -exec rm -rf {} + 2>/dev/null
 systemctl restart knx-automation
 ```
@@ -156,6 +164,17 @@ REST-API unter `http://<IP>:8000/api/`
 ---
 
 ## Changelog
+
+### v3.6.0
+- **Custom Card System**: Neue Karten mit visueller Konfiguration – Wert-Karten, Schalter, Markdown-Überschriften
+- Glassmorphic Design mit Backdrop-Blur und konfigurierbarem Glow
+- Bedingte Formatierung: Icon-Farbe, Rahmen, Glow ändern sich basierend auf KO-Wert
+- Live-Vorschau im Card-Editor mit 3 Tabs (Grundlagen, Aussehen, Bedingungen)
+- Icon-Palette mit 24 MDI-Vorlagen + Emoji-Support
+- Aktionen: Toggle, Wert senden, Seitennavigation
+- Templates: `{value}`, `{unit}` Platzhalter für Wertanzeige
+- Update-Endpoint kopiert jetzt auch README.md, install.sh, requirements.txt
+- Shields.io Badges in README
 
 ### v3.5.0
 - Block-Dokumentation: ? Button mit Doku (HELP-Text, Ein-/Ausgänge) und editierbarem Quellcode
