@@ -7,6 +7,8 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-18-blue?logo=react)](https://react.dev/)
 
+
+
 Webbasierte KNX-Hausautomation mit visueller Logik-Engine, Dashboard und integrierter Gerätesteuerung.
 
 ## Features
