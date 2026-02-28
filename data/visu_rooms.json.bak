@@ -93,45 +93,6 @@
         "y": 25,
         "widthOverride": 140,
         "heightOverride": 40
-      },
-      {
-        "id": "2f6d8332-43cc-4f37-a44b-7e255adba5ca",
-        "templateId": "__custom_card__",
-        "label": "Neue Karte",
-        "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
-        "koBindings": {},
-        "variableValues": {
-          "__customCard": {
-            "cardType": "button",
-            "label": "Neue Karte",
-            "icon": "lightbulb",
-            "iconSize": 28,
-            "iconColor": "rgba(255,238,88,1)",
-            "unit": "",
-            "decimals": 1,
-            "action": "none",
-            "layout": "horizontal",
-            "borderColor": "rgba(255,255,255,0.12)",
-            "borderWidth": 1,
-            "bgColor": "rgba(255,255,255,0.06)",
-            "bgOpacity": 6,
-            "borderRadius": 14,
-            "textColor": "rgba(255,255,255,0.95)",
-            "fontSize": 22,
-            "labelSize": 12,
-            "conditions": [
-              {
-                "operator": ">",
-                "value": 0,
-                "iconColor": "rgba(244,67,54,1)"
-              }
-            ]
-          }
-        },
-        "x": 237,
-        "y": 599,
-        "widthOverride": 143,
-        "heightOverride": 44
       }
     ]
   },
