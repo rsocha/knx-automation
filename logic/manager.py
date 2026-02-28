@@ -67,6 +67,9 @@ class LogicManager:
         
         self._running = True
         logger.info(f"Logic manager initialized with {len(self._blocks)} blocks")
+
+        # Start periodic auto-save for remanent blocks
+        self._autosave_task = asyncio.create_task(self._autosave_loop())
     
     async def _load_custom_blocks(self):
         """Load custom block classes from Python files"""
@@ -248,9 +251,12 @@ class LogicManager:
                 'description': cls.DESCRIPTION,
                 'category': getattr(cls, 'CATEGORY', 'Allgemein'),
                 'version': getattr(cls, 'VERSION', '1.0'),
+                'author': getattr(cls, 'AUTHOR', ''),
+                'remanent': getattr(cls, 'REMANENT', False),
                 'builtin': True,
                 'inputs': cls.INPUTS,
                 'outputs': cls.OUTPUTS,
+                'help': getattr(cls, 'HELP', ''),
             })
         
         # Custom blocks
@@ -262,9 +268,12 @@ class LogicManager:
                 'description': getattr(cls, 'DESCRIPTION', ''),
                 'category': getattr(cls, 'CATEGORY', 'Custom'),
                 'version': getattr(cls, 'VERSION', '1.0'),
+                'author': getattr(cls, 'AUTHOR', ''),
+                'remanent': getattr(cls, 'REMANENT', False),
                 'builtin': False,
                 'inputs': getattr(cls, 'INPUTS', {}),
                 'outputs': getattr(cls, 'OUTPUTS', {}),
+                'help': getattr(cls, 'HELP', ''),
             })
         
         # Sort by ID
@@ -480,13 +489,41 @@ class LogicManager:
         if not self._running:
             return
         
+        # Coerce string values to proper types (API sends strings from query params)
+        if isinstance(value, str):
+            v = value.strip()
+            if v.lower() in ('true', 'on'):
+                value = True
+            elif v.lower() in ('false', 'off'):
+                value = False
+            else:
+                try:
+                    iv = int(v)
+                    # Keep as int if it round-trips cleanly
+                    if str(iv) == v:
+                        value = iv
+                except ValueError:
+                    try:
+                        value = float(v)
+                    except ValueError:
+                        pass  # keep as string
+        
         bindings = self._address_to_blocks.get(address, [])
+        if bindings:
+            logger.info(f"on_address_changed {address}={value} ({type(value).__name__}) -> {len(bindings)} bindings")
         for instance_id, input_key in bindings:
             block = self._blocks.get(instance_id)
             if block and block._enabled:
-                # Use force_trigger=True so repeated same-value sends still trigger
-                # (important for Play/Pause/Stop buttons that always send 1)
-                block.set_input(input_key, value, force_trigger=True)
+                try:
+                    # Use force_trigger=True so repeated same-value sends still trigger
+                    # (important for Play/Pause/Stop buttons that always send 1)
+                    block.set_input(input_key, value, force_trigger=True)
+                except TypeError:
+                    # Fallback for blocks that don't accept force_trigger
+                    logger.warning(f"Block {instance_id} set_input doesn't accept force_trigger, using positional")
+                    block.set_input(input_key, value)
+                except Exception as e:
+                    logger.error(f"Error setting input {input_key} on {instance_id}: {e}")
     
     def _on_block_output(self, instance_id: str, output_key: str, value: Any):
         """Called when a block sets an output value"""
@@ -504,17 +541,34 @@ class LogicManager:
     async def _write_output(self, address: str, value: Any):
         """Write output value to address and route to bound inputs"""
         try:
-            if self._db_manager:
-                # Check if internal address
+            # Detect internal by prefix or DB flag
+            is_internal = address.upper().startswith("IKO:")
+            
+            if not is_internal and self._db_manager:
                 addr_obj = await self._db_manager.get_group_address(address)
-                if addr_obj and addr_obj.is_internal:
-                    # Update DB
+                is_internal = addr_obj is not None and addr_obj.is_internal
+            
+            if is_internal:
+                if self._db_manager:
+                    # Auto-create IKO if not in DB
+                    existing = await self._db_manager.get_group_address(address)
+                    if not existing:
+                        try:
+                            from models.group_address import GroupAddressCreate
+                            ga = GroupAddressCreate(
+                                address=address, name=f"Auto: {address}",
+                                is_internal=True, function="IKO"
+                            )
+                            await self._db_manager.create_group_address(ga)
+                        except Exception:
+                            pass
+                    # Update DB value
                     await self._db_manager.update_group_address_value(address, str(value))
-                    # Route to all blocks with inputs bound to this address
-                    self._route_value_to_inputs(address, value)
-                elif self._knx_manager:
-                    # Send to KNX bus
-                    await self._knx_manager.send_telegram(address, value)
+                # Route to all blocks with inputs bound to this address
+                self._route_value_to_inputs(address, value)
+            elif self._knx_manager:
+                # Send to KNX bus
+                await self._knx_manager.send_telegram(address, value)
         except Exception as e:
             logger.error(f"Error writing output to {address}: {e}")
     
@@ -639,6 +693,21 @@ class LogicManager:
                                 if key in block.INPUTS:
                                     block._input_values[key] = value
                                     logger.debug(f"Restored input value {key} = {value}")
+
+                        # Restore output values
+                        saved_outputs = block_data.get('output_values', {})
+                        if saved_outputs:
+                            for key, value in saved_outputs.items():
+                                if key in block.OUTPUTS:
+                                    block._output_values[key] = value
+
+                        # Restore remanent state (before bindings/on_start)
+                        if getattr(block, 'REMANENT', False) and 'remanent_state' in block_data:
+                            try:
+                                block.restore_remanent_state(block_data['remanent_state'])
+                                logger.info(f"Restored remanent state for {instance_id}")
+                            except Exception as e:
+                                logger.warning(f"Error restoring remanent state for {instance_id}: {e}")
                         
                         # Restore bindings
                         for key, binding in block_data.get('input_bindings', {}).items():
@@ -677,8 +746,9 @@ class LogicManager:
                 config_file.parent.mkdir(parents=True, exist_ok=True)
                 
                 # Active blocks
-                active_blocks = [
-                    {
+                active_blocks = []
+                for b in self._blocks.values():
+                    block_data = {
                         'instance_id': b.instance_id,
                         'block_type': b.__class__.__name__,
                         'page_id': getattr(b, '_page_id', None),
@@ -686,9 +756,17 @@ class LogicManager:
                         'input_bindings': b._input_bindings,
                         'output_bindings': b._output_bindings,
                         'input_values': b._input_values,
+                        'output_values': dict(b._output_values),
                     }
-                    for b in self._blocks.values()
-                ]
+                    # Save remanent state if block supports it
+                    if getattr(b, 'REMANENT', False):
+                        try:
+                            rem_state = b.get_remanent_state()
+                            if rem_state is not None:
+                                block_data['remanent_state'] = rem_state
+                        except Exception as e:
+                            logger.warning(f"Error getting remanent state for {b.instance_id}: {e}")
+                    active_blocks.append(block_data)
                 
                 # Include unloaded blocks so they aren't lost!
                 # Filter out any that were since loaded (by instance_id)
@@ -721,6 +799,37 @@ class LogicManager:
         
         with open(file_path, 'r', encoding='utf-8') as f:
             return f.read()
+
+    def get_block_source_by_type(self, block_type: str) -> dict:
+        """Get source code and file info for a block type (builtin or custom)"""
+        import inspect
+        # Check custom blocks first
+        if block_type in self._custom_block_classes:
+            cls = self._custom_block_classes[block_type]
+            # Find the source file
+            for py_file in self._custom_blocks_path.glob("*.py"):
+                try:
+                    code = py_file.read_text(encoding='utf-8')
+                    if f'class {block_type}' in code:
+                        return {'code': code, 'filename': py_file.name, 'editable': True}
+                except Exception:
+                    pass
+        # Check builtins
+        if block_type in ALL_BUILTIN_BLOCKS:
+            cls = ALL_BUILTIN_BLOCKS[block_type]
+            try:
+                src_file = Path(inspect.getfile(cls))
+                code = src_file.read_text(encoding='utf-8')
+                # Also check custom_blocks for an editable copy
+                custom_copy = self._custom_blocks_path / src_file.name
+                return {
+                    'code': code,
+                    'filename': src_file.name,
+                    'editable': custom_copy.exists(),
+                }
+            except Exception:
+                pass
+        raise FileNotFoundError(f"Source for {block_type} not found")
     
     async def update_block_file_code(self, filename: str, code: str) -> dict:
         """Update source code of a custom block file"""
@@ -746,9 +855,28 @@ class LogicManager:
         
         return {"status": "saved", "filename": filename}
     
+    async def _autosave_loop(self):
+        """Periodically save config (important for remanent blocks)"""
+        try:
+            while self._running:
+                await asyncio.sleep(60)
+                if self._running:
+                    # Only save if any remanent blocks exist
+                    has_remanent = any(getattr(b, 'REMANENT', False) for b in self._blocks.values())
+                    if has_remanent:
+                        await self.save_to_db()
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            logger.error(f"Autosave error: {e}")
+
     async def shutdown(self):
         """Shutdown the logic manager"""
         self._running = False
+        
+        # Cancel autosave
+        if hasattr(self, '_autosave_task') and self._autosave_task:
+            self._autosave_task.cancel()
         
         # Call on_stop for all blocks
         for block in self._blocks.values():
@@ -757,7 +885,7 @@ class LogicManager:
             except Exception:
                 pass
         
-        # Save config
+        # Save config (captures final remanent state)
         await self.save_to_db()
         
         logger.info("Logic manager shutdown")

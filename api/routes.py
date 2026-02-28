@@ -20,8 +20,23 @@ from logic.manager import ALL_BUILTIN_BLOCKS
 logger = logging.getLogger(__name__)
 
 # Single source of truth for version — update HERE only
-APP_VERSION = "3.4.3"
+APP_VERSION = "3.5.0"
 router = APIRouter()
+
+# ============ Global WebSocket broadcast for telegram log ============
+_ws_telegram_clients: list = []  # Active WebSocket connections for /ws/telegrams
+
+async def _broadcast_telegram(data: dict):
+    """Broadcast a telegram/IKO event to all connected WebSocket clients"""
+    dead = []
+    for ws in _ws_telegram_clients:
+        try:
+            await ws.send_json(data)
+        except Exception:
+            dead.append(ws)
+    for ws in dead:
+        _ws_telegram_clients.remove(ws)
+
 
 
 # ============ LOGIC MODELS ============
@@ -1216,17 +1231,53 @@ async def export_csv():
 @router.post("/knx/send")
 async def send_telegram(group_address: str = Query(...), value: str = Query(...)):
     try:
-        # Check if this is an internal address
+        logger.info(f"/knx/send: address={group_address}, value={value}")
+        
+        # Detect internal address by prefix OR DB flag
+        is_internal = group_address.upper().startswith("IKO:")
         addr = await db_manager.get_group_address(group_address)
         
-        if addr and addr.is_internal:
-            # Internal address - update value in DB AND notify logic manager
+        if not is_internal and addr and addr.is_internal:
+            is_internal = True
+        
+        logger.info(f"/knx/send: is_internal={is_internal}, in_db={addr is not None}")
+        
+        if is_internal:
+            # Auto-create IKO in DB if it doesn't exist
+            if not addr:
+                try:
+                    from models.group_address import GroupAddressCreate
+                    ga = GroupAddressCreate(
+                        address=group_address,
+                        name=f"Auto: {group_address}",
+                        is_internal=True,
+                        function="IKO"
+                    )
+                    await db_manager.create_group_address(ga)
+                    logger.info(f"Auto-created IKO address: {group_address}")
+                except Exception as e:
+                    logger.debug(f"IKO auto-create {group_address}: {e}")
+            
+            # Update value in DB
             await db_manager.update_group_address_value(group_address, value)
-            # Critical: forward to logic manager so blocks receive the value
+            
+            # Forward to logic manager so blocks receive the value
             try:
                 await logic_manager.on_address_changed(group_address, value)
             except Exception as e:
                 logger.warning(f"Logic forward for IKO {group_address}: {e}")
+            
+            # Broadcast to WebSocket log (so Log page shows IKO changes)
+            from datetime import datetime
+            await _broadcast_telegram({
+                "type": "telegram",
+                "timestamp": datetime.now().isoformat(),
+                "source": "VSE",
+                "destination": group_address,
+                "value": value,
+                "direction": "outgoing",
+            })
+            
             return {"status": "set", "address": group_address, "value": value, "internal": True}
         
         # KNX address - send telegram
@@ -1240,6 +1291,8 @@ async def send_telegram(group_address: str = Query(...), value: str = Query(...)
         if await knx_manager.send_telegram(group_address, val):
             return {"status": "sent", "address": group_address, "value": val}
         raise HTTPException(status_code=500, detail="Send failed")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -1247,12 +1300,36 @@ async def send_telegram(group_address: str = Query(...), value: str = Query(...)
 async def set_internal_value(address: str = Query(...), value: str = Query(...)):
     """Set value for internal address (or any address without sending KNX telegram)"""
     try:
+        # Auto-create if IKO and not in DB
+        existing = await db_manager.get_group_address(address)
+        if not existing and address.upper().startswith("IKO:"):
+            try:
+                from models.group_address import GroupAddressCreate
+                ga = GroupAddressCreate(
+                    address=address, name=f"Auto: {address}",
+                    is_internal=True, function="IKO"
+                )
+                await db_manager.create_group_address(ga)
+            except Exception:
+                pass
+        
         await db_manager.update_group_address_value(address, value)
         # Also notify logic manager
         try:
             await logic_manager.on_address_changed(address, value)
         except Exception as e:
             logger.warning(f"Logic forward for {address}: {e}")
+        
+        # Broadcast to log
+        await _broadcast_telegram({
+            "type": "telegram",
+            "timestamp": datetime.now().isoformat(),
+            "source": "internal",
+            "destination": address,
+            "value": value,
+            "direction": "outgoing",
+        })
+        
         return {"status": "set", "address": address, "value": value}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1277,20 +1354,23 @@ async def get_telegrams(count: int = 50):
 @router.websocket("/ws/telegrams")
 async def ws_telegrams(websocket: WebSocket):
     await websocket.accept()
+    _ws_telegram_clients.append(websocket)
     
-    async def callback(data):
+    # KNX telegram callback - forward real KNX bus traffic
+    async def knx_callback(data):
         try:
             await websocket.send_json({
+                "type": "telegram",
                 "timestamp": data["timestamp"].isoformat() if hasattr(data["timestamp"], 'isoformat') else str(data["timestamp"]),
-                "source": data["source"],
-                "destination": data["destination"],
-                "payload": data["payload"],
-                "direction": data["direction"]
+                "source": data.get("source", "KNX"),
+                "destination": data.get("destination", "–"),
+                "value": str(data.get("payload", "")),
+                "direction": data.get("direction", "incoming"),
             })
         except Exception:
             pass
     
-    knx_manager.register_telegram_callback(callback)
+    knx_manager.register_telegram_callback(knx_callback)
     
     try:
         while True:
@@ -1298,7 +1378,9 @@ async def ws_telegrams(websocket: WebSocket):
     except WebSocketDisconnect:
         pass
     finally:
-        knx_manager.unregister_telegram_callback(callback)
+        knx_manager.unregister_telegram_callback(knx_callback)
+        if websocket in _ws_telegram_clients:
+            _ws_telegram_clients.remove(websocket)
 
 @router.post("/knx/reconnect-gateway")
 async def reconnect_knx_gateway():
@@ -2180,6 +2262,15 @@ async def get_custom_block_code(filename: str):
         return {"filename": filename, "code": code}
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
+
+@router.get("/logic/block-type/{block_type}/source")
+async def get_block_type_source(block_type: str):
+    """Get source code for a block type (builtin or custom)"""
+    try:
+        result = logic_manager.get_block_source_by_type(block_type)
+        return result
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Source for {block_type} not found")
 
 @router.put("/logic/custom-blocks/{filename}/code")
 async def update_custom_block_code(filename: str, data: dict):

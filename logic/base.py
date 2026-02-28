@@ -59,6 +59,22 @@ class LogicBlock(ABC):
     # Format: {'E1': {'name': 'Input Name', 'type': 'bool|int|float|str', 'default': value}}
     INPUTS: Dict[str, Dict] = {}
     OUTPUTS: Dict[str, Dict] = {}
+
+    # Remanent blocks persist custom state across reboots
+    REMANENT: bool = False
+
+    # Help text: documentation, usage notes, version history (displayed in help dialog)
+    # Use plain text or simple markdown. Example:
+    # HELP = """
+    # Funktionsweise:
+    # 1. E1 auf 1 setzen → Block startet
+    # 2. Wert an E2 → wird verdoppelt an A1 ausgegeben
+    #
+    # Versionshistorie:
+    # v1.1 – Neuer Eingang E3
+    # v1.0 – Erstversion
+    # """
+    HELP: str = ""
     
     def __init__(self, instance_id: str):
         self.instance_id = instance_id
@@ -325,7 +341,17 @@ class LogicBlock(ABC):
         if self._timer_task:
             self._timer_task.cancel()
             self._timer_task = None
-    
+
+    def get_remanent_state(self) -> Optional[Dict]:
+        """Override: Return custom state dict to persist across reboots.
+        Only called if REMANENT = True. Return None to skip saving."""
+        return None
+
+    def restore_remanent_state(self, state: Dict) -> None:
+        """Override: Restore block from previously saved remanent state.
+        Called during startup before on_start() if saved state exists."""
+        pass
+
     def to_dict(self) -> Dict:
         """Serialize block state"""
         return {
@@ -335,6 +361,7 @@ class LogicBlock(ABC):
             'name': self.NAME,
             'description': self.DESCRIPTION,
             'category': self.CATEGORY,
+            'remanent': self.REMANENT,
             'enabled': self._enabled,
             'timer_interval': self._timer_interval,
             'page_id': getattr(self, '_page_id', None),

@@ -1,7 +1,9 @@
 """
-SONOS Controller LogicBlock (v1.2) - All-in-One
+SONOS Controller LogicBlock (v1.4) - All-in-One
 
 Steuert und überwacht einen Sonos-Lautsprecher über die lokale UPnP/SOAP-API (Port 1400).
+Remanent: Einstellungen (Volume, Bass, Treble, IP etc.) werden über Reboots gespeichert.
+Play/Pause/Stop werden NICHT gespeichert (Befehle, keine Settings).
 
 Funktionen:
 - Play/Pause/Stop/Next/Previous
@@ -913,6 +915,38 @@ class SonosController(LogicBlock):
     VERSION = "1.4"
     AUTHOR = "Reinhard Socha"
     CATEGORY = "Audio"
+    REMANENT = True
+
+    HELP = """Funktionsweise:
+Steuert einen Sonos-Lautsprecher über die lokale UPnP/SOAP-API (Port 1400).
+E1 aktiviert den Baustein, E3 enthält die IP-Adresse des Lautsprechers.
+Im Intervall (E2, Standard 1s) werden Status, Titel, Cover etc. abgefragt.
+
+Steuerung:
+- E4/E5/E6: Play/Pause/Stop (werden bei jedem Wert ausgelöst)
+- E7/E8: Next/Previous Track
+- E9: Volume (0-100), E15: Mute (0/1)
+- E10-E14: Loudness, Bass, Treble, Playmode, Crossfade
+- E16: Play URI – spielt Radio-Stream, Spotify-URI oder Sonos-Favorit ab
+- E18: TTS-Ansage mit automatischer Zustandswiederherstellung
+- E21: Nachtmodus für Soundbar/Beam/Arc
+
+Ausgänge:
+- A1-A6: Name, Status (1=Play, 2=Pause, 3=Stop), Radiosender, Titel, Artist, Album
+- A7: Cover-URL, A13: Aktuelle URI, A30: Streaming-Dienst
+- A15-A21: Volume, Bass, Treble, Loudness, Crossfade, Mute, Playmode
+- A31: Genre (iTunes-Lookup), A32-A35: Genre-Farben für Lichtsteuerung
+
+Remanent:
+Einstellungen (IP, Volume, Bass, Treble, etc.) werden über Reboots gespeichert.
+Play/Pause/Stop werden NICHT gespeichert – der Sonos spielt eigenständig weiter.
+
+Versionshistorie:
+v1.4 – Remanenz: Settings + Ausgabewerte überleben Reboots
+v1.3 – TRIGGER_ALWAYS für Play/Pause/Stop, force_trigger Fix
+v1.2 – Genre-Farben, iTunes-Lookup, Streaming-Dienst-Erkennung
+v1.1 – Favoriten-Cache, Gruppen-Erkennung, Reconnect mit Backoff
+v1.0 – Erstversion: Play/Pause/Stop, Volume, Radio, TTS"""
 
     INPUTS = {
         'E1':  {'name': 'Start/Stop', 'type': 'bool', 'default': True},
@@ -986,7 +1020,7 @@ class SonosController(LogicBlock):
     # E4=Play, E5=Pause, E6=Stop: sollen IMMER den Befehl senden, egal welcher Wert
     TRIGGER_ALWAYS_INPUTS = {'E4', 'E5', 'E6', 'E7', 'E8', 'E16', 'E18'}
 
-    def set_input(self, key, value):
+    def set_input(self, key, value, force_trigger=False):
         """Override: Trigger-Inputs lösen IMMER aus (auch bei gleichem Wert)"""
         if key in self.TRIGGER_ALWAYS_INPUTS:
             # Type conversion wie in Base
@@ -1008,7 +1042,7 @@ class SonosController(LogicBlock):
             if self._enabled:
                 self._trigger_execute(key)
             return True
-        return super().set_input(key, value)
+        return super().set_input(key, value, force_trigger)
 
     def on_start(self):
         super().on_start()
@@ -1043,6 +1077,40 @@ class SonosController(LogicBlock):
             interval = 1
         self.set_timer(interval)
         logger.info("[{}] SONOS Controller gestartet, Intervall: {}s".format(self.ID, interval))
+
+    # ---- Remanenz: Einstellungen über Reboots speichern ----
+    # NICHT gespeichert: E4-E8 (Play/Pause/Stop/Next/Previous) – das sind Kommandos, keine Settings
+
+    # Inputs die als Einstellungen gespeichert werden (keine Befehle)
+    _REMANENT_INPUTS = {'E1', 'E2', 'E3', 'E9', 'E10', 'E11', 'E12', 'E13', 'E14', 'E15',
+                        'E16', 'E17', 'E18', 'E19', 'E20', 'E21', 'E22'}
+
+    def get_remanent_state(self):
+        """Speichere Settings + letzte Ausgabewerte für Reboot-Persistenz"""
+        saved_inputs = {k: v for k, v in self._input_values.items() if k in self._REMANENT_INPUTS}
+        saved_outputs = dict(self._output_values)
+        return {
+            'inputs': saved_inputs,
+            'outputs': saved_outputs,
+        }
+
+    def restore_remanent_state(self, state):
+        """Stelle Settings nach Reboot wieder her"""
+        if not state:
+            return
+
+        # Restore input settings
+        for key, value in state.get('inputs', {}).items():
+            if key in self.INPUTS and key in self._REMANENT_INPUTS:
+                self._input_values[key] = value
+
+        # Restore last known output values (dashboard shows something useful)
+        for key, value in state.get('outputs', {}).items():
+            if key in self.OUTPUTS:
+                self._output_values[key] = value
+
+        self.debug('Status', 'Settings wiederhergestellt')
+        logger.info(f"{self.instance_id}: Remanent-Settings wiederhergestellt")
 
     def execute(self, triggered_by=None):
         if not self.get_input('E1'):
