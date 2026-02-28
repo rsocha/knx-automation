@@ -1,6 +1,6 @@
 # KNX Automation v3.5.0
 
-![GitHub Downloads](https://img.shields.io/github/downloads/neponn/ring-tile-card/latest/total?style=for-the-badge&label=Downloads)
+
 
 Webbasierte KNX-Hausautomation mit visueller Logik-Engine, Dashboard und integrierter Gerätesteuerung.
 
