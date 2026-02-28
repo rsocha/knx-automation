@@ -6,6 +6,7 @@ from .netatmo_homecoach import NetatmoHomecoach
 from .fritzdect200 import FritzDect200
 from .ical_termine import ICalTermine
 from .timer import Timer
+from .sonne_mond import SonneMond
 
 EXTRA_BLOCKS = {
     'EcowittWS90': EcowittWS90,
@@ -15,4 +16,5 @@ EXTRA_BLOCKS = {
     'FritzDect200': FritzDect200,
     'ICalTermine': ICalTermine,
     'Timer': Timer,
+    'SonneMond': SonneMond,
 }

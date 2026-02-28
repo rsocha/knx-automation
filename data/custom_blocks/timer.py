@@ -1,10 +1,8 @@
 """
-Timer (v2.0) – Remanent
+Timer (v2.1) – Remanent
 
 Countdown-Timer mit Minuteneingabe und Start/Stop-Steuerung.
 Remanent: Timer-Zustand wird über Reboots hinweg gespeichert.
-Nach einem Neustart wird die verstrichene Zeit berechnet und
-der Timer läuft weiter (oder ist bereits abgelaufen).
 
 Eingänge:
 - E1: Start/Stop (1 = Start, 0 = Stop/Reset)
@@ -13,19 +11,7 @@ Eingänge:
 Ausgänge:
 - A1: Timer-Status (1 = läuft, 0 = abgelaufen/gestoppt)
 - A2: Restzeit in Sekunden
-
-Funktionsweise:
-1. Dauer in Minuten an E2 setzen
-2. E1 auf 1 → Timer startet, A1 = 1
-3. Restzeit wird jede Sekunde auf A2 aktualisiert
-4. Timer läuft ab → A1 wechselt auf 0
-5. E1 auf 0 → Timer wird sofort gestoppt, A1 = 0
-
-Remanent-Verhalten:
-- Bei Shutdown/Reboot wird der Zustand gespeichert (Restzeit + Zeitstempel)
-- Beim Neustart wird die verstrichene Zeit abgezogen
-- War der Timer während des Neustarts abgelaufen → A1 = 0
-- War noch Restzeit übrig → Timer läuft automatisch weiter
+- A3: Restzeit als HH:MM
 """
 
 import asyncio
@@ -47,15 +33,15 @@ class Timer(LogicBlock):
     ID = 20043
     NAME = "Timer"
     DESCRIPTION = "Countdown-Timer mit Minuteneingabe, Start/Stop und Remanenz"
-    VERSION = "2.0"
+    VERSION = "2.1"
     CATEGORY = "Hilfsmittel"
     REMANENT = True
 
     HELP = """Funktionsweise:
 1. Dauer in Minuten an E2 setzen (z.B. 5 für 5 Minuten)
 2. E1 auf 1 → Timer startet, A1 = 1
-3. Restzeit wird jede Sekunde auf A2 aktualisiert
-4. Timer läuft ab → A1 wechselt auf 0, A2 = 0
+3. Restzeit wird jede Sekunde aktualisiert (A2 in Sekunden, A3 als HH:MM)
+4. Timer läuft ab → A1 wechselt auf 0, A2 = 0, A3 = 00:00
 5. E1 auf 0 → Timer wird sofort gestoppt
 
 Remanent-Verhalten:
@@ -65,6 +51,7 @@ Remanent-Verhalten:
 - War noch Restzeit übrig → Timer läuft automatisch weiter
 
 Versionshistorie:
+v2.1 – Neuer Ausgang A3: Restzeit als HH:MM
 v2.0 – Remanenz: Timer überlebt Reboots, speichert Zielzeit als Unix-Timestamp
 v1.0 – Erstversion: Countdown-Timer mit Start/Stop und Sekunden-Aktualisierung"""
 
@@ -76,6 +63,7 @@ v1.0 – Erstversion: Countdown-Timer mit Start/Stop und Sekunden-Aktualisierung
     OUTPUTS = {
         'A1': {'name': 'Timer-Status (1=läuft, 0=abgelaufen)', 'type': 'bool'},
         'A2': {'name': 'Restzeit in Sekunden', 'type': 'float'},
+        'A3': {'name': 'Restzeit (HH:MM)', 'type': 'str'},
     }
 
     def __init__(self, *args, **kwargs):
@@ -84,6 +72,14 @@ v1.0 – Erstversion: Countdown-Timer mit Start/Stop und Sekunden-Aktualisierung
         self._timer_running = False
         self._remaining = 0.0
         self._target_time = 0.0  # Unix timestamp when timer expires
+
+    def _set_remaining(self, seconds):
+        """Setzt A2 (Sekunden) und A3 (HH:MM) gleichzeitig"""
+        seconds = max(0, round(seconds))
+        self.set_output('A2', seconds)
+        h = seconds // 3600
+        m = (seconds % 3600) // 60
+        self.set_output('A3', f'{h:02d}:{m:02d}')
 
     def execute(self, triggered_by=None):
         """Reagiert auf Änderungen an E1 oder E2"""
@@ -98,7 +94,7 @@ v1.0 – Erstversion: Countdown-Timer mit Start/Stop und Sekunden-Aktualisierung
             self._remaining = seconds
             self._timer_running = True
             self.set_output('A1', 1)
-            self.set_output('A2', self._remaining)
+            self._set_remaining(seconds)
             self._timer_task = asyncio.ensure_future(self._countdown())
             self.debug('Status', f'Läuft – {duration_min} min')
             logger.info(f"{self.instance_id}: Timer gestartet ({duration_min} Minuten)")
@@ -109,7 +105,7 @@ v1.0 – Erstversion: Countdown-Timer mit Start/Stop und Sekunden-Aktualisierung
             self._remaining = 0
             self._target_time = 0
             self.set_output('A1', 0)
-            self.set_output('A2', 0)
+            self._set_remaining(0)
             self.debug('Status', 'Gestoppt')
             logger.info(f"{self.instance_id}: Timer gestoppt")
 
@@ -127,8 +123,11 @@ v1.0 – Erstversion: Countdown-Timer mit Start/Stop und Sekunden-Aktualisierung
                 if remaining <= 0:
                     break
                 self._remaining = remaining
-                self.set_output('A2', round(remaining))
-                self.debug('Status', f'Läuft – {int(remaining)}s')
+                self._set_remaining(remaining)
+                h = int(remaining) // 3600
+                m = (int(remaining) % 3600) // 60
+                s = int(remaining) % 60
+                self.debug('Status', f'Läuft – {h:02d}:{m:02d}:{s:02d}')
                 await asyncio.sleep(1)
 
             # Timer abgelaufen
@@ -136,7 +135,7 @@ v1.0 – Erstversion: Countdown-Timer mit Start/Stop und Sekunden-Aktualisierung
             self._remaining = 0
             self._target_time = 0
             self.set_output('A1', 0)
-            self.set_output('A2', 0)
+            self._set_remaining(0)
             self.debug('Status', 'Abgelaufen')
             logger.info(f"{self.instance_id}: Timer abgelaufen")
 
@@ -171,7 +170,7 @@ v1.0 – Erstversion: Countdown-Timer mit Start/Stop und Sekunden-Aktualisierung
             self._remaining = 0
             self._target_time = 0
             self.set_output('A1', 0)
-            self.set_output('A2', 0)
+            self._set_remaining(0)
             self.debug('Status', 'Abgelaufen (während Reboot)')
             logger.info(f"{self.instance_id}: Timer war abgelaufen während Reboot")
         else:
@@ -180,9 +179,11 @@ v1.0 – Erstversion: Countdown-Timer mit Start/Stop und Sekunden-Aktualisierung
             self._remaining = remaining
             self._timer_running = True
             self.set_output('A1', 1)
-            self.set_output('A2', round(remaining))
+            self._set_remaining(remaining)
             self._timer_task = asyncio.ensure_future(self._countdown())
-            self.debug('Status', f'Fortgesetzt – {int(remaining)}s übrig')
+            h = int(remaining) // 3600
+            m = (int(remaining) % 3600) // 60
+            self.debug('Status', f'Fortgesetzt – {h:02d}:{m:02d} übrig')
             logger.info(f"{self.instance_id}: Timer fortgesetzt nach Reboot ({int(remaining)}s übrig)")
 
     def on_start(self):
