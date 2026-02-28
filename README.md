@@ -1,218 +1,191 @@
-# KNX Automation Dashboard
+# KNX Automation v3.5.0
 
-Ein modernes Web-Dashboard zur Steuerung und Visualisierung von KNX Smart Home Systemen.
+Webbasierte KNX-Hausautomation mit visueller Logik-Engine, Dashboard und integrierter Gerätesteuerung.
 
-![Version](https://img.shields.io/badge/version-3.2.0-blue)
+## Features
 
-## 🚀 Features
+### Dashboard & Visualisierung
+- **VSE-Visualisierung** – Eigene Räume mit Widgets (Schalter, Dimmer, Jalousien, Mediaplayer, Szenen)
+- **Energie-Dashboard** – PV-Ertrag, Batteriespeicher, Verbrauch und Strompreis (EPEX Spot) in Echtzeit
+- **Charts** – Historische Diagramme für Energie, Temperatur, Luftfeuchtigkeit mit konfigurierbaren KO-Bindungen
 
-### Dashboard
-- Übersicht aller KNX Gruppenadressen mit Echtzeit-Statusanzeige
-- **Werte senden** – Dialog zum Senden beliebiger Werte an KNX Bus und IKOs
-- **Quick-Toggle** – Schalten von DPT-1 Adressen direkt in der Tabelle
-- **Wert kopieren** – Klick auf Wert kopiert in die Zwischenablage (HTTP-kompatibel)
-- Filter nach internen (IKO) / externen (KNX) Adressen
-- Sortierung, Gruppenfilter, Batch-Operationen
-- CSV-Import für Gruppenadressen
-- Feste Spaltenbreiten — Wert-Spalte truncated mit Tooltip
+### Logik-Engine
+- **Visuelle Programmierung** – Bausteine per Drag & Drop verbinden (React Flow)
+- **Seiten & Räume** – Logik nach Räumen gruppiert mit freier Namensgebung
+- **IKO-Adressen** – Interne Kommunikation zwischen Bausteinen (auto-generiert)
+- **KO-Bindung** – Gruppenadressen an Ein-/Ausgänge binden (durchsuchbar mit Filter)
+- **Block-Dokumentation** – ? Button zeigt Doku, Versionshistorie und editierbaren Quellcode
+- **Remanenz** – Bausteine können ihren Zustand über Reboots speichern (⚡ Icon im Header)
+- **Hot-Reload** – Bausteine hochladen, Code bearbeiten, sofort neu laden
 
-### Logik-Editor
-- **ReactFlow** basierter visueller Editor
-- **Integrierte Bausteinbibliothek** – Sidebar links mit Suchfunktion
-- **Drag-to-Connect** – Blöcke per Linie verbinden, IKOs werden automatisch erstellt
-- **IKO-Deduplizierung** – Vorhandene IKOs werden wiederverwendet statt doppelt erstellt
-- **Farbige Handles** – Eingänge blau, Ausgänge grün, KO-Nodes grün
-- Logikseiten-Verwaltung mit Seitenbaum
-- KO-Bindungen für Ein-/Ausgänge mit verbreitertem Dialog
-- **Custom Blocks** – Eigene Python-Bausteine hochladen
-- **Block-Erhaltung** – Nicht ladbare Blocks bleiben in Config erhalten
-- Export/Import von Logik-Konfigurationen
+### Mitgelieferte Bausteine
 
-### Visualisierung
-- **VSE Widget System** – Visuelle Elemente für Schalter, Sensoren, Charts
-- **Server-Sync** – Automatische Speicherung, auch bei SPA-Navigation
-- **Drag & Drop** – Widgets frei positionieren und skalieren
-- **Mobile Panel** – Standalone-Ansicht für Smartphones
-- **Home Assistant Import** – YAML-Karten importieren
+| Nr. | Name | Kategorie | Version | Remanent | Beschreibung |
+|-----|------|-----------|---------|----------|--------------|
+| 20027 | SONOS Controller | Audio | 1.4 | ✅ | SOAP-Steuerung für Sonos (Play/Pause/Volume/Radio/TTS/Genre-Farben) |
+| 20028 | FRITZ!DECT 200 | Energie | 1.0 | – | AVM Smart-Plug mit Leistungsmessung und Kostenberechnung |
+| 20030 | Ecowitt WS90 | Wetter | 1.0 | – | Wetterstation (Temperatur, Wind, Regen, UV, Solar) |
+| 20031 | OAuth2 TokenManager | System | 1.0 | – | OAuth2-Token-Verwaltung mit automatischem Refresh |
+| 20032 | EPEX Spot Price | Energie | 1.0 | – | Strompreis-Abfrage (Awattar API) |
+| 20033 | Netatmo Homecoach | Klima | 1.0 | – | Raumklima (CO₂, Temperatur, Luftfeuchtigkeit, Lärm) |
+| 20042 | Sonne & Mond | Hilfsmittel | 2.0 | ✅ | Sonnenauf-/untergang, Dämmerung, Mondphase, Tag/Nacht |
+| 20043 | Timer | Hilfsmittel | 2.1 | ✅ | Countdown-Timer mit HH:MM-Anzeige und Remanenz |
+| 20044 | iCal-Termine | Kalender | 2.0 | – | Kalender-Abfrage mit 5 Suchslots und Vorwarnung |
+| — | AND / OR / NOT | Logik | – | – | Logik-Gatter |
+| — | Threshold | Logik | – | – | Schwellwert-Vergleich |
+| — | Add / Multiply | Mathe | – | – | Rechenoperationen |
+| — | MinMax | Mathe | – | – | Minimum/Maximum-Erkennung |
 
-### System
-- **Vollständiges Backup/Restore** – Exportiert/importiert alle Daten inkl. Custom Blocks, VSE-Templates, DB
-- **Einstellungen** – API-Konfiguration, Visu Backup/Restore
-- **System-Update** – Paket-Upload mit zuverlässigem Neustart (detached Script)
-- **Dark/Light Mode** – Vollständiger Theme-Support inkl. ReactFlow
-- **Berechtigungen** – Automatische Fix-Funktion
-- **Kein Browser-Cache-Problem** – `index.html` wird mit no-cache Headers ausgeliefert
+### Telegramm-Log
+- **Persistenter WebSocket** – Log bleibt erhalten bei Seitenwechsel
+- **Live-Anzeige** – KNX-Telegramme und IKO-Befehle in Echtzeit
+- **Filter & Export** – Nach Adresse/Wert/Richtung filtern, CSV-Export
 
-## 📁 Verzeichnisstruktur
+### Weitere Features
+- KNX Gateway (KNXnet/IP Tunneling)
+- ESF/knxproj Import für Gruppenadressen
+- Backup & Restore
+- Auto-Update über Dashboard
+- Dark Theme
 
-```
-/opt/knx-automation/
-├── static/                    # Kompiliertes Frontend
-│   ├── index.html            # React Dashboard (no-cache)
-│   ├── assets/               # JS/CSS Bundles (content-hash)
-│   └── vse/                  # Widget Templates (JSON)
-├── dashboard-src/             # React Source Code
-│   ├── src/
-│   │   ├── components/       # UI-Komponenten
-│   │   ├── pages/            # Seiten
-│   │   ├── hooks/            # React Query Hooks
-│   │   └── services/         # API-Funktionen
-│   └── package.json
-├── data/
-│   ├── knx.db                # SQLite Datenbank
-│   ├── logic_config.json     # Logik-Konfiguration
-│   ├── visu_rooms.json       # Visualisierungs-Konfiguration
-│   ├── block_positions.json  # Positionen im Logik-Editor
-│   ├── custom_blocks/        # Eigene Python-Bausteine
-│   └── vse/                  # VSE Templates
-├── api/
-│   └── routes.py             # FastAPI Routes (APP_VERSION zentral)
-├── logic/
-│   ├── base.py               # BaseLogicBlock (permissive binding)
-│   ├── manager.py            # LogicManager (Block-Erhaltung)
-│   └── blocks/               # Eingebaute Bausteine
-├── knx/                       # KNX-Verbindung (xknx)
-├── main.py                    # FastAPI Server (no-cache SPA)
-├── install.sh                 # Installationsskript
-└── README.md
-```
+---
 
-## 🔧 Installation
+## Installation
 
+### Voraussetzungen
+- Raspberry Pi 4 oder Linux-Server (Ubuntu 22.04+, Debian 11+)
+- Python 3.10+
+- KNXnet/IP Gateway im Netzwerk
+
+### Schnellinstallation
 ```bash
-# 1. System-Pakete installieren
+tar xzf knx-automation-v3.5.0.tar.gz
+cd knx-automation
+chmod +x install.sh
 sudo ./install.sh
-
-# 2. Dashboard-Paket entpacken
-cd /opt/knx-automation
-tar -xzf knx-automation-v3.2.0.tar.gz --strip-components=1
-
-# 3. Service starten
-systemctl start knx-automation
-
-# 4. Dashboard öffnen
-# http://<IP>:8000
 ```
 
-## 🔄 Update
+Oberfläche: **http://<IP>:8000**
 
-### Über die Web-UI
-1. Dashboard öffnen → **System-Update**
-2. `.tar.gz` Paket hochladen
-3. Automatischer Neustart (detached Script)
+---
+
+## Update
+
+### Über das Dashboard
+Einstellungen → Update → `.tar.gz` hochladen → Automatischer Neustart
 
 ### Manuell
 ```bash
 cd /opt/knx-automation
-systemctl stop knx-automation
-tar -xzf knx-automation-v3.2.0.tar.gz --strip-components=1 --overwrite
+tar xzf knx-automation-v3.5.0.tar.gz --strip-components=1 --overwrite
 find . -name "__pycache__" -exec rm -rf {} + 2>/dev/null
-systemctl start knx-automation
+systemctl restart knx-automation
 ```
 
-> **Hinweis:** Eigene Custom Blocks in `data/custom_blocks/` werden beim Update erhalten (Merge statt Replace).
+---
 
-## 💾 Backup & Restore
+## Eigene Bausteine erstellen
 
-### Backup erstellen
-Dashboard → **System-Update** → **Backup herunterladen**
+Python-Dateien in `data/custom_blocks/`.
 
-Das Backup enthält:
-- Alle Gruppenadressen (KNX + IKO)
-- Logik-Konfiguration (Blöcke, Seiten, Bindings, Positionen)
-- Custom Blocks (.py-Dateien)
-- Visu-Räume mit allen Widgets
-- VSE-Templates
-- Einstellungen (.env)
-- SQLite-Datenbank
+### Minimales Beispiel
+```python
+from logic.base import LogicBlock
 
-### Backup einspielen
-Dashboard → **System-Update** → **Backup einspielen** → `.json` Datei auswählen
+class MeinBaustein(LogicBlock):
+    ID = 99001
+    NAME = "Mein Baustein"
+    DESCRIPTION = "Kurzbeschreibung"
+    VERSION = "1.0"
+    CATEGORY = "Custom"
+    REMANENT = False  # True für Zustandsspeicherung über Reboots
 
-Funktioniert auch auf einer frischen Neuinstallation.
+    HELP = """Funktionsweise:
+Beschreibung was der Baustein tut.
 
-### API
-```bash
-# Backup herunterladen
-curl -o backup.json http://<IP>:8000/api/v1/system/backup
+Versionshistorie:
+v1.0 – Erstversion"""
 
-# Backup einspielen
-curl -X POST -F "file=@backup.json" http://<IP>:8000/api/v1/system/restore
+    INPUTS = {
+        'E1': {'name': 'Eingang', 'type': 'int', 'default': 0},
+    }
+    OUTPUTS = {
+        'A1': {'name': 'Ausgang', 'type': 'int', 'default': 0},
+    }
+
+    def execute(self, triggered_by=None):
+        wert = self.get_input('E1')
+        self.set_output('A1', wert * 2)
 ```
 
-## 📋 Changelog
+### Remanenter Baustein
+```python
+class MeinRemanentBlock(LogicBlock):
+    REMANENT = True
 
-### v3.2.0 (2026-02-26)
-- **Vollständiges Backup/Restore** – Exportiert alle Daten inkl. Custom Blocks (.py), VSE-Templates, DB als JSON
-- **IKO-Deduplizierung** – `/group-addresses/ensure` Endpoint: erstellt nur wenn nicht vorhanden
-- **KO-Dialog verbreitert** – Zweizeilige Darstellung für lange IKO-Namen
-- **Visu-Speicherung repariert** – Save on unmount bei SPA-Navigation, Query-Cache Update
-- **Browser-Cache gelöst** – `index.html` mit no-cache HTTP-Headers und Meta-Tags
-- **Adresstabelle** – Feste Spaltenbreiten, Wert truncated mit Tooltip, Klick zum Kopieren
-- **Restart zuverlässig** – Detached Bash-Script mit nohup/setpgrp, überlebt Service-Stop
-- **Version zentral** – APP_VERSION Konstante statt 4x hardcoded, ein /system/restart Endpoint
-- **Handle-Farben** – Eingänge blau, Ausgänge grün, KO-Nodes grün
-- **Block-Erhaltung** – Nicht ladbare Blocks bleiben in logic_config.json erhalten
-- **Permissive Binding** – Unbekannte Input/Output Keys werden mit Warning akzeptiert
-- **URL-Encoding** – encodeURIComponent() auf alle instance_id API-Aufrufe
-- **AttributeError Fix** – getattr() für _name bei Block-Verbindungen
+    def get_remanent_state(self):
+        """Wird alle 60s + bei Shutdown aufgerufen"""
+        return {'mein_wert': self._counter}
 
-### v3.1.0 (2026-02-26)
-- **Neues Farbschema** – Blau statt Grün (hsl 199 89% 48%)
-- **Send-Dialog** – Werte an Bus/KO senden direkt aus der Adresstabelle
-- **Quick-Toggle** – AN/AUS Buttons für DPT-1 Adressen
-- **Logik-Sidebar** – Bausteinbibliothek fest links integriert mit Suchfunktion
-- **Drag-to-Connect** – Verbindungslinie mit automatischer IKO-Erstellung
-- **Custom Blocks Schutz** – Update überschreibt keine benutzer-hochgeladenen Bausteine
-- **Stabilität** – Atomare Config-Speicherung, Lock für concurrent writes
-- **Bare Except Fix** – Alle except: durch except Exception: ersetzt
-- **Dark Mode** – ReactFlow colorMode korrekt synchronisiert
-
-### v3.0.31
-- Dark Mode Fix für ReactFlow
-- Frontend/Backend Version-Sync
-
-### v3.0.29
-- Initiales VSE Widget System
-- Logic Editor mit ReactFlow
-- KO/IKO Management
-- Visu-Editor mit Drag & Drop
-
-## 🛠 Entwicklung
-
-```bash
-cd dashboard-src
-npm install
-npm run dev          # Development Server
-npm run build        # Production Build → ../static/
+    def restore_remanent_state(self, state):
+        """Wird beim Start aufgerufen, vor on_start()"""
+        self._counter = state.get('mein_wert', 0)
 ```
 
-## 📡 API
+### Wichtige Hinweise
+- `set_input()` Override **muss** `force_trigger=False` als Parameter haben
+- `execute()` ist synchron – für async: `asyncio.ensure_future()` verwenden
+- `debug(key, value)` für das Debug-Panel (nicht `set_debug`)
+- HELP-Text: Zeilen die mit `:` enden werden als Überschriften dargestellt
 
-Base URL: `http://<host>:8000/api/v1`
+---
 
-| Endpunkt | Methode | Beschreibung |
-|---|---|---|
-| `/status` | GET | Systemstatus |
-| `/group-addresses` | GET | Alle Gruppenadressen |
-| `/group-addresses` | POST | Adresse erstellen |
-| `/group-addresses/ensure` | POST | Adresse erstellen oder vorhandene zurückgeben |
-| `/group-addresses/{addr}` | PUT | Adresse bearbeiten |
-| `/group-addresses/{addr}` | DELETE | Adresse löschen |
-| `/knx/send` | POST | Wert an KNX senden |
-| `/logic/blocks` | GET | Alle Logikblöcke |
-| `/logic/blocks` | POST | Block erstellen |
-| `/logic/blocks/{id}/bind` | POST | KO binden |
-| `/logic/available` | GET | Verfügbare Blocktypen |
-| `/logic/custom-blocks` | GET | Custom Block Dateien |
-| `/logic/custom-blocks/upload` | POST | Block hochladen (.py) |
-| `/visu/rooms` | GET | Visu-Räume laden |
-| `/visu/rooms` | POST | Visu-Räume speichern |
-| `/system/update/upload` | POST | Update-Paket installieren |
-| `/system/restart` | POST | System neustarten |
-| `/system/backup` | GET | Vollständiges Backup herunterladen |
-| `/system/restore` | POST | Backup einspielen |
+## API
 
-## 📄 Lizenz
+REST-API unter `http://<IP>:8000/api/`
 
-Privat – Alle Rechte vorbehalten.
+| Methode | Pfad | Beschreibung |
+|---------|------|--------------|
+| GET | `/api/group-addresses` | Alle Gruppenadressen |
+| POST | `/api/knx/send?group_address=1/2/3&value=1` | Telegramm senden |
+| GET | `/api/logic/blocks` | Alle Logikblock-Instanzen |
+| GET | `/api/logic/available-blocks` | Verfügbare Bausteintypen |
+| GET | `/api/logic/block-type/{type}/source` | Quellcode eines Bausteins |
+| WS | `/api/ws/telegrams` | WebSocket für Live-Telegramme |
+
+---
+
+## Changelog
+
+### v3.5.0
+- Block-Dokumentation: ? Button mit Doku (HELP-Text, Ein-/Ausgänge) und editierbarem Quellcode
+- HELP-Feld in der Basisklasse: Funktionsbeschreibung + Versionshistorie pro Baustein
+- Remanenz-Framework: Bausteine speichern Zustand über Reboots (auto-save alle 60s + Shutdown)
+- Code-Editor: Ctrl+A markiert nur Code (nicht ganze Seite), Ctrl+S speichert, Tab = 4 Leerzeichen
+- Sonne & Mond v2.0: Trigger, Auto-Update, Dämmerung, Tag/Nacht, Mondbeleuchtung %, 8 Mondphasen
+- Timer v2.1: Remanenz + neuer Ausgang A3 (Restzeit als HH:MM)
+- SONOS Controller v1.4: Remanenz für Settings (Volume/Bass/IP), force_trigger Signatur-Fix
+- iCal-Termine v2.0: Eigener Parser, file:// Support, Datumsvergleich-Fix
+- Persistenter Telegramm-Log (WebSocket überlebt Seitenwechsel)
+- Version-Anzeige korrigiert (war hardcoded auf 3.4.3)
+
+### v3.4.x
+- IKO-Routing (Prefix-Erkennung, Auto-Create, WebSocket-Broadcast)
+- VSE Media Player Klick-Fix
+- Logik-Seiten mit Raum-Gruppierung
+- Energie-Dashboard mit KO-Binding
+- ESF/knxproj Import, Charts, Backup & Restore
+
+### v3.3.0
+- Charts/Energy-Seite mit Recharts
+- KO-Binding-Dialog mit Adresse/Name/Gruppen-Filter
+- KNX Gateway Einstellungen
+
+### v3.2.0
+- Send Value Dialog
+- Blaues Farbschema
+- Logik-Editor mit IKO-Deduplication
+- Browser-Cache-Fix
+
+### v3.0.0
+- Erstversion mit Dashboard, VSE-Visualisierung und Logik-Engine
