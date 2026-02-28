@@ -1689,6 +1689,13 @@ async def upload_update(file: UploadFile = File(...)):
                 main_src = source_dir / 'main.py'
                 if main_src.exists():
                     shutil.copy(main_src, base_dir / 'main.py')
+
+                # Copy root-level files (README, install script, etc.)
+                for root_file in ['README.md', 'install.sh', 'requirements.txt']:
+                    rf_src = source_dir / root_file
+                    if rf_src.exists():
+                        shutil.copy(rf_src, base_dir / root_file)
+                        logger.info(f"Updated: {root_file}")
             
             # Clear Python cache
             for root, dirs, files in os.walk(str(base_dir)):
