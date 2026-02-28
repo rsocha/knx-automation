@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtualenv
+venv/
+
+# SQLite runtime
+*.db
+*.db-wal
+*.db-shm
+
+# Runtime state
+data/*.json
+data/*.bak
+
+# Build assets hash outputs
+static/assets/index-*.js
+static/assets/index-*.css
