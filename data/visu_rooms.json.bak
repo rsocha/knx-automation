@@ -115,7 +115,8 @@
           "ko3": "IKO:200352_SonosController_5_062328:A6",
           "ko5": "IKO:5_SONOS Controller:A2",
           "ko6": "IKO:200352_SonosController_5_062328:A15",
-          "ko14": "IKO:200352_SonosController_5_062328:E5"
+          "ko14": "IKO:200352_SonosController_5_062328:E5",
+          "ko12": "IKO:200352_SonosController_5_062328:E9"
         },
         "variableValues": {},
         "x": 0,
@@ -134,6 +135,58 @@
     "id": "42def95b-86da-4fd0-a7d5-b3a6050a580b",
     "name": "Schlafzimmer",
     "category": "Schlafbereich",
-    "widgets": []
+    "widgets": [
+      {
+        "id": "83d1cdfa-cf4f-4acd-81c6-5ae048b453b4",
+        "templateId": "__custom_card__",
+        "label": "Neue Karte",
+        "roomId": "42def95b-86da-4fd0-a7d5-b3a6050a580b",
+        "koBindings": {},
+        "variableValues": {
+          "__customCard": {
+            "cardType": "ring",
+            "label": "Neue Karte",
+            "icon": "solar-power",
+            "iconSize": 29,
+            "iconColor": "rgba(77,208,225,1)",
+            "unit": "W",
+            "decimals": 1,
+            "action": "none",
+            "layout": "vertical",
+            "borderColor": "rgba(255,255,255,0.12)",
+            "borderWidth": 1,
+            "bgColor": "rgba(255,255,255,0.06)",
+            "bgOpacity": 6,
+            "borderRadius": 14,
+            "textColor": "rgba(255,255,255,0.95)",
+            "fontSize": 22,
+            "labelSize": 12,
+            "conditions": [
+              {
+                "operator": ">",
+                "value": 500,
+                "iconColor": "rgba(102,187,106,1)",
+                "borderColor": "rgba(102,187,106,0.45)",
+                "glowColor": "rgba(102,187,106,0.25)"
+              }
+            ],
+            "koAddress": "IKO:1_Fronius Gen24 Solar API:A4",
+            "ring": {
+              "max": 8000
+            },
+            "_yaml": "type: ring\nentity: IKO:1_Fronius Gen24 Solar API:A4\nname: Neue Karte\nicon: mdi:solar-power\nicon_color: rgba(77,208,225,1)\nunit: W\ndecimals: 1\nlayout: vertical\nring:\n  max: 8000\nstyle:\n  icon_size: 29\nconditions:\n  - when: '> 500'\n    icon_color: rgba(102,187,106,1)\n    border_color: rgba(102,187,106,0.45)\n    glow: rgba(102,187,106,0.25)\n"
+          }
+        },
+        "x": 20,
+        "y": 20,
+        "widthOverride": 154,
+        "heightOverride": 143
+      }
+    ],
+    "background": {
+      "type": "color",
+      "color": "0,0,0",
+      "opacity": 100
+    }
   }
 ]

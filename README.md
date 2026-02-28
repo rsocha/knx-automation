@@ -1,6 +1,6 @@
 # KNX Automation
 
-![Version](https://img.shields.io/badge/version-3.6.1-blue)
+![Version](https://img.shields.io/badge/version-3.6.2-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Raspberry_Pi_%7C_Linux-orange)](https://www.raspberrypi.com/)
 [![KNX](https://img.shields.io/badge/KNX-IP_Tunneling-red)](https://www.knx.org/)
@@ -164,6 +164,15 @@ REST-API unter `http://<IP>:8000/api/`
 ---
 
 ## Changelog
+
+### v3.6.2
+- **Fix: Card bearbeiten zeigt gespeicherte Werte** – `useEffect` synchronisiert Config beim Öffnen des Dialogs
+
+### v3.6.1
+- **Fix: Custom Cards auf Panel/iPhone** – `CUSTOM_CARD_TEMPLATE` fehlte in VisuPanel.tsx
+- **Fix: Volume-Slider Mediaplayer** – Touch/Pointer-Events, `touch-action: none`, `onValueCommit` statt `onValueChange`
+- **Fix: Slider in Edit-Mode** – Drag-Handler überspringt jetzt `role=slider` und `data-interactive` Elemente
+- Toggle: Schalt-KO + Status-KO getrennt konfigurierbar
 
 ### v3.6.0
 - **Custom Card System**: Neue Karten mit visueller Konfiguration – Wert-Karten, Schalter, Ring-Gauges, Markdown-Überschriften
