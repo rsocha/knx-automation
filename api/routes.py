@@ -20,7 +20,7 @@ from logic.manager import ALL_BUILTIN_BLOCKS
 logger = logging.getLogger(__name__)
 
 # Single source of truth for version — update HERE only
-APP_VERSION = "3.6.2"
+APP_VERSION = "3.6.3"
 router = APIRouter()
 
 # ============ Global WebSocket broadcast for telegram log ============
@@ -2010,6 +2010,33 @@ async def bind_block(instance_id: str, data: BindingCreate):
     
     await logic_manager.save_to_db()
     return {"status": "bound", "address": address}
+
+
+@router.post("/logic/blocks/{instance_id}/unbind")
+async def unbind_block(instance_id: str, data: dict):
+    """Remove a binding from a block input or output"""
+    from urllib.parse import unquote
+    instance_id = unquote(instance_id)
+
+    block = logic_manager.get_block(instance_id)
+    if not block:
+        raise HTTPException(status_code=404, detail=f"Block '{instance_id}' nicht gefunden")
+
+    input_key = data.get("input_key")
+    output_key = data.get("output_key")
+
+    if input_key:
+        if not logic_manager.unbind_input(instance_id, input_key):
+            raise HTTPException(status_code=400, detail=f"Kein Binding für {input_key}")
+    elif output_key:
+        if not logic_manager.unbind_output(instance_id, output_key):
+            raise HTTPException(status_code=400, detail=f"Kein Binding für {output_key}")
+    else:
+        raise HTTPException(status_code=400, detail="input_key oder output_key muss angegeben werden")
+
+    await logic_manager.save_to_db()
+    return {"status": "unbound"}
+
 
 @router.post("/logic/blocks/{instance_id}/bind-output")
 async def bind_block_output(instance_id: str, data: BindingCreate):

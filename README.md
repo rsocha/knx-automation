@@ -1,6 +1,6 @@
 # KNX Automation
 
-![Version](https://img.shields.io/badge/version-3.6.2-blue)
+![Version](https://img.shields.io/badge/version-3.6.3-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Raspberry_Pi_%7C_Linux-orange)](https://www.raspberrypi.com/)
 [![KNX](https://img.shields.io/badge/KNX-IP_Tunneling-red)](https://www.knx.org/)
@@ -165,9 +165,19 @@ REST-API unter `http://<IP>:8000/api/`
 
 ## Changelog
 
-### v3.6.2
-- **Fix: Card bearbeiten zeigt gespeicherte Werte** – `useEffect` synchronisiert Config beim Öffnen des Dialogs
+### v3.6.3
+- **Fix: Quelltext-Editor Flackern** – Uncontrolled Textarea + useMemo für stabile block-Referenz, useEffect nur auf block.type
+- **Fix: Verbindungslinien löschen** – `/unbind` API-Route, `unbind_input()`/`unbind_output()` im Manager, Delete-Taste für Edges
+- **Fix: Binding lösen im Port-Popup** – "Lösen"-Button wenn Port gebunden ist
+- **Fix: Manager Startup-Reihenfolge** – `restore_remanent_state()` jetzt VOR `on_start()`
+- **Fix: MinMax aus base.py entfernt** – nur Custom-Block in data/custom_blocks
 
+### v3.6.2
+- **Fix: Manager Startup-Reihenfolge** – `restore_remanent_state()` jetzt VOR `on_start()`
+- **Fix: MinMax aus base.py entfernt** – nur noch Custom-Block in data/custom_blocks/
+- **Fix: Hilfe-Dialog Flackern** – useEffect Dependency `[code]` entfernt, stopPropagation auf alle Keydown
+- **Fix: Hilfe-Dialog Ctrl+A/Ctrl+C** – Focus-Trap verhindert, Ctrl+C erlaubt
+- **Fix: Card bearbeiten zeigt gespeicherte Werte** – useEffect sync beim Öffnen
 ### v3.6.1
 - **Fix: Custom Cards auf Panel/iPhone** – `CUSTOM_CARD_TEMPLATE` fehlte in VisuPanel.tsx
 - **Fix: Volume-Slider Mediaplayer** – Touch/Pointer-Events, `touch-action: none`, `onValueCommit` statt `onValueChange`

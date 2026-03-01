@@ -511,46 +511,6 @@ class Add(LogicBlock):
         self.set_output('A1', (self.get_input('E1') or 0) + (self.get_input('E2') or 0))
 
 
-class MinMax(LogicBlock):
-    """Track min and max values"""
-    ID = 10030
-    NAME = "Min/Max"
-    DESCRIPTION = "Speichert Minimum und Maximum"
-    CATEGORY = "Statistik"
-    
-    INPUTS = {
-        'E1': {'name': 'Wert', 'type': 'float', 'default': 0.0},
-        'E2': {'name': 'Reset', 'type': 'bool', 'default': False},
-    }
-    OUTPUTS = {
-        'A1': {'name': 'Minimum', 'type': 'float'},
-        'A2': {'name': 'Maximum', 'type': 'float'},
-        'A3': {'name': 'Aktuell', 'type': 'float'},
-    }
-    
-    def on_start(self):
-        super().on_start()
-        self._min = None
-        self._max = None
-    
-    def execute(self, triggered_by=None):
-        if self.get_input('E2'):  # Reset
-            self._min = None
-            self._max = None
-            return
-        
-        value = self.get_input('E1')
-        if value is not None:
-            if self._min is None or value < self._min:
-                self._min = value
-            if self._max is None or value > self._max:
-                self._max = value
-            
-            self.set_output('A1', self._min)
-            self.set_output('A2', self._max)
-            self.set_output('A3', value)
-
-
 class Switch(LogicBlock):
     """Switch/Selector - Routes input to output based on selector"""
     ID = 10040
@@ -615,7 +575,6 @@ BUILTIN_BLOCKS = {
     'Threshold': Threshold,
     'Multiply': Multiply,
     'Add': Add,
-    'MinMax': MinMax,
     'Switch': Switch,
     'Hysteresis': Hysteresis,
 }

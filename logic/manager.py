@@ -317,7 +317,7 @@ class LogicManager:
                     logger.error(f"Error in initial poll for {block.instance_id}: {e}")
         return block
     
-    def create_block(self, block_type: str, instance_id: str = None, page_id: str = None) -> Optional[LogicBlock]:
+    def create_block(self, block_type: str, instance_id: str = None, page_id: str = None, skip_on_start: bool = False) -> Optional[LogicBlock]:
         """Create a new block instance"""
         # Find the class
         if block_type in ALL_BUILTIN_BLOCKS:
@@ -341,14 +341,14 @@ class LogicManager:
         # Register
         self._blocks[instance_id] = block
         
-        # Call on_start (handle both sync and async)
-        try:
-            result = block.on_start()
-            # If it's a coroutine, schedule it
-            if asyncio.iscoroutine(result):
-                asyncio.create_task(result)
-        except Exception as e:
-            logger.error(f"Error in on_start for {instance_id}: {e}")
+        # Call on_start (handle both sync and async) - unless loading from DB
+        if not skip_on_start:
+            try:
+                result = block.on_start()
+                if asyncio.iscoroutine(result):
+                    asyncio.create_task(result)
+            except Exception as e:
+                logger.error(f"Error in on_start for {instance_id}: {e}")
         
         logger.info(f"Created block {instance_id} of type {block_type}")
         return block
@@ -483,7 +483,47 @@ class LogicManager:
             asyncio.create_task(self.save_to_db())
         
         return removed_count
-    
+
+    def unbind_input(self, instance_id: str, input_key: str) -> bool:
+        """Remove a single input binding from a block"""
+        block = self._blocks.get(instance_id)
+        if not block:
+            return False
+
+        old_addr = block.get_input_binding(input_key)
+        if not old_addr:
+            logger.warning(f"No binding found for {instance_id}.{input_key}")
+            return False
+
+        # Remove from address_to_blocks map
+        if old_addr in self._address_to_blocks:
+            self._address_to_blocks[old_addr] = [
+                (bid, key) for bid, key in self._address_to_blocks[old_addr]
+                if not (bid == instance_id and key == input_key)
+            ]
+            if not self._address_to_blocks[old_addr]:
+                del self._address_to_blocks[old_addr]
+
+        # Remove from block
+        block._input_bindings.pop(input_key, None)
+        logger.info(f"Unbound input {instance_id}.{input_key} from {old_addr}")
+        return True
+
+    def unbind_output(self, instance_id: str, output_key: str) -> bool:
+        """Remove a single output binding from a block"""
+        block = self._blocks.get(instance_id)
+        if not block:
+            return False
+
+        old_addr = block.get_output_binding(output_key)
+        if not old_addr:
+            logger.warning(f"No output binding found for {instance_id}.{output_key}")
+            return False
+
+        block._output_bindings.pop(output_key, None)
+        logger.info(f"Unbound output {instance_id}.{output_key} from {old_addr}")
+        return True
+
     async def on_address_changed(self, address: str, value: Any):
         """Called when a KNX or internal address value changes"""
         if not self._running:
@@ -680,7 +720,8 @@ class LogicManager:
                     block = self.create_block(
                         block_type,
                         instance_id,
-                        block_data.get('page_id')
+                        block_data.get('page_id'),
+                        skip_on_start=True  # Don't call on_start yet!
                     )
                     if block:
                         block._enabled = block_data.get('enabled', True)
@@ -716,6 +757,14 @@ class LogicManager:
                         for key, binding in block_data.get('output_bindings', {}).items():
                             self.bind_output(block.instance_id, key, binding)
                             logger.debug(f"Bound output {key} -> {binding}")
+
+                        # NOW call on_start (after remanent + bindings are restored)
+                        try:
+                            result = block.on_start()
+                            if asyncio.iscoroutine(result):
+                                asyncio.create_task(result)
+                        except Exception as e:
+                            logger.error(f"Error in on_start for {instance_id}: {e}")
                     else:
                         logger.error(f"Failed to create block: {instance_id}")
                 
