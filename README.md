@@ -1,6 +1,6 @@
 # KNX Automation
 
-![Version](https://img.shields.io/badge/version-3.6.3-blue)
+![Version](https://img.shields.io/badge/version-3.6.4-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Raspberry_Pi_%7C_Linux-orange)](https://www.raspberrypi.com/)
 [![KNX](https://img.shields.io/badge/KNX-IP_Tunneling-red)](https://www.knx.org/)
@@ -164,6 +164,10 @@ REST-API unter `http://<IP>:8000/api/`
 ---
 
 ## Changelog
+
+### v3.6.4
+- **Fix: Block-Bindings triggern execute()** – `_write_output` ruft jetzt `on_address_changed()` auf, damit gebundene Blöcke ihre `execute()` ausführen (vorher wurden nur Werte gesetzt ohne Verarbeitung)
+- **Fix: KNX-Output-Routing** – Auch bei echten KNX-Adressen werden gebundene Blöcke direkt benachrichtigt (Bus-Echo ist unzuverlässig)
 
 ### v3.6.3
 - **Fix: Quelltext-Editor Flackern** – Uncontrolled Textarea + useMemo für stabile block-Referenz, useEffect nur auf block.type

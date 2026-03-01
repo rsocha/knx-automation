@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class NetatmoHomecoach(LogicBlock):
     """Netatmo Healthy Home Coach - Luftqualitätssensor"""
     
-    ID = 20032
+    ID = 19000502
     NAME = "Netatmo Homecoach"
     DESCRIPTION = "Netatmo Healthy Home Coach (Aircare) - Temperatur, Luftfeuchtigkeit, CO2, Lärm"
     CATEGORY = "Sensoren"

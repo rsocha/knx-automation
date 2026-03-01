@@ -579,7 +579,7 @@ class LogicManager:
         asyncio.create_task(self._write_output(address, value))
     
     async def _write_output(self, address: str, value: Any):
-        """Write output value to address and route to bound inputs"""
+        """Write output value to address and trigger all bound inputs"""
         try:
             # Detect internal by prefix or DB flag
             is_internal = address.upper().startswith("IKO:")
@@ -604,29 +604,17 @@ class LogicManager:
                             pass
                     # Update DB value
                     await self._db_manager.update_group_address_value(address, str(value))
-                # Route to all blocks with inputs bound to this address
-                self._route_value_to_inputs(address, value)
             elif self._knx_manager:
                 # Send to KNX bus
                 await self._knx_manager.send_telegram(address, value)
+
+            # ALWAYS route to bound inputs (triggers execute on downstream blocks)
+            # For IKO: this is the only way values reach other blocks
+            # For KNX: the bus echo is unreliable, so trigger directly too
+            await self.on_address_changed(address, value)
+
         except Exception as e:
             logger.error(f"Error writing output to {address}: {e}")
-    
-    def _route_value_to_inputs(self, address: str, value: Any):
-        """Route a value from an address to all blocks with inputs bound to it"""
-        for block in self._blocks.values():
-            for input_key, bound_addr in block._input_bindings.items():
-                if bound_addr == address:
-                    logger.debug(f"Routing {address}={value} to {block.instance_id}.{input_key}")
-                    old_value = block._input_values.get(input_key)
-                    block._input_values[input_key] = value
-                    
-                    # Trigger input change handler
-                    if hasattr(block, 'on_input_change') and old_value != value:
-                        try:
-                            block.on_input_change(input_key, value, old_value)
-                        except Exception as e:
-                            logger.error(f"Error in on_input_change for {block.instance_id}: {e}")
     
     # ============ PAGES ============
     
