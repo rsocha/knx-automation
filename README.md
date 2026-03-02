@@ -1,6 +1,6 @@
 # KNX Automation
 
-![Version](https://img.shields.io/badge/version-3.6.4-blue)
+![Version](https://img.shields.io/badge/version-3.6.6-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Raspberry_Pi_%7C_Linux-orange)](https://www.raspberrypi.com/)
 [![KNX](https://img.shields.io/badge/KNX-IP_Tunneling-red)](https://www.knx.org/)
@@ -164,6 +164,15 @@ REST-API unter `http://<IP>:8000/api/`
 ---
 
 ## Changelog
+
+### v3.6.6
+- **Fronius Gen24 v1.6** – Neue Ausgänge A30 (Batterie Laden aktuell W) und A31 (Batterie Entladen aktuell W)
+
+### v3.6.5
+- **Energie: Batterie KOs** – Batterie Laden + Entladen als neue Datenquellen in KO-Zuordnung
+- Quick Stats mit 6 Karten (PV, Verbrauch, Bat. Laden, Bat. Entladen, Temperatur, Strompreis)
+- Energie-Chart: Batterie Lade/Entlade-Kurven (grün/orange)
+- Wochenübersicht: Batterie kWh-Balken pro Tag
 
 ### v3.6.4
 - **Fix: Block-Bindings triggern execute()** – `_write_output` ruft jetzt `on_address_changed()` auf, damit gebundene Blöcke ihre `execute()` ausführen (vorher wurden nur Werte gesetzt ohne Verarbeitung)

@@ -9,6 +9,16 @@
     "unit": "",
     "factor": 1
   },
+  "batteryCharge": {
+    "address": "IKO:1_Fronius Gen24 Solar API:A30",
+    "unit": "",
+    "factor": 1
+  },
+  "batteryDischarge": {
+    "address": "IKO:1_Fronius Gen24 Solar API:A31",
+    "unit": "",
+    "factor": 1
+  },
   "temperatureIndoor": {
     "address": "IKO:20032_NetatmoHomecoach_2_110346:A5",
     "unit": "",

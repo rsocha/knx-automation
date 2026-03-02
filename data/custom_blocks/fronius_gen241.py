@@ -30,7 +30,7 @@ class FroniusGen24(LogicBlock):
     ID = 20030
     NAME = "Fronius Gen24 Solar API"
     DESCRIPTION = "Liest PV, Batterie und Grid-Daten vom Fronius Gen24 Plus Wechselrichter"
-    VERSION = "1.6"
+    VERSION = "1.7"
     AUTHOR = "r.socha"
     CATEGORY = "Energie"
     
@@ -117,7 +117,7 @@ class FroniusGen24(LogicBlock):
         'A28': {'name': 'Inverter Status', 'type': 'str'},
         'A29': {'name': 'Batterie Status', 'type': 'str'},
         
-        # Batterie Laden/Entladen getrennt
+        # Batterie Laden/Entladen getrennt (Fronius: positiv=Entladen, negativ=Laden)
         'A30': {'name': 'Batterie Laden aktuell (W)', 'type': 'float'},
         'A31': {'name': 'Batterie Entladen aktuell (W)', 'type': 'float'},
     }
@@ -255,7 +255,7 @@ class FroniusGen24(LogicBlock):
         pv_energy_day = float(site.get('E_Day') or 0)
         pv_energy_total = float(site.get('E_Total') or 0)
         
-        # Batterie Leistung (positiv=Laden, negativ=Entladen)
+        # Batterie Leistung (Fronius: positiv=Entladen, negativ=Laden)
         bat_power = float(site.get('P_Akku') or 0)
         
         # Grid Leistung (positiv=Bezug, negativ=Einspeisung)
@@ -334,10 +334,10 @@ class FroniusGen24(LogicBlock):
             self._update_peak('grid_import', grid_power, now_time)
         if grid_power < 0:  # Einspeisung
             self._update_peak('grid_export', abs(grid_power), now_time)
-        if bat_power > 0:  # Laden
-            self._update_peak('bat_charge', bat_power, now_time)
-        if bat_power < 0:  # Entladen
-            self._update_peak('bat_discharge', abs(bat_power), now_time)
+        if bat_power > 0:  # Entladen (Fronius: positiv = Batterie gibt ab)
+            self._update_peak('bat_discharge', bat_power, now_time)
+        if bat_power < 0:  # Laden (Fronius: negativ = Batterie nimmt auf)
+            self._update_peak('bat_charge', abs(bat_power), now_time)
         if load_power > 0:
             self._update_peak('load', load_power, now_time)
         
@@ -393,9 +393,9 @@ class FroniusGen24(LogicBlock):
         self.set_output('A28', inverter_status)
         self.set_output('A29', bat_status)
         
-        # Batterie Laden/Entladen getrennt
-        bat_charge_w = bat_power if bat_power > 0 else 0.0
-        bat_discharge_w = abs(bat_power) if bat_power < 0 else 0.0
+        # Batterie Laden/Entladen getrennt (Fronius: positiv=Entladen, negativ=Laden)
+        bat_charge_w = abs(bat_power) if bat_power < 0 else 0.0
+        bat_discharge_w = bat_power if bat_power > 0 else 0.0
         self.set_output('A30', round(bat_charge_w, 1))
         self.set_output('A31', round(bat_discharge_w, 1))
         
