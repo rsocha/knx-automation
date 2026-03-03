@@ -188,7 +188,7 @@ class SonneMond(LogicBlock):
     ID = 20042
     NAME = "Sonne & Mond"
     DESCRIPTION = "Sonnenaufgang/-untergang, Tageslänge, Dämmerung, Mondphase und Mondzeiten"
-    VERSION = "2.0"
+    VERSION = "2.1"
     CATEGORY = "Hilfsmittel"
     REMANENT = True
 
@@ -207,6 +207,7 @@ Remanent:
 Letzte Werte bleiben nach Reboot sichtbar bis zum nächsten Update.
 
 Versionshistorie:
+v2.1 – Mitternachts-Update, ephem berechnet immer heutigen Tag
 v2.0 – Trigger-Eingang, Auto-Update, Dämmerung, Tag/Nacht-Ausgang, Mondbeleuchtung %, Remanenz, HELP
 v1.0 – Erstversion mit ephem + Fallback"""
 
@@ -306,12 +307,16 @@ v1.0 – Erstversion mit ephem + Fallback"""
     # ----------------------------------------------------------------
 
     def _calc_ephem(self, lat, lon, now):
-        """Berechnung mit pyephem"""
+        """Berechnung mit pyephem – immer heutigen Tag zeigen"""
         obs = ephem.Observer()
         obs.lat = str(lat)
         obs.lon = str(lon)
-        obs.date = now.strftime('%Y/%m/%d %H:%M:%S')
         obs.elevation = 0
+
+        # Berechne von heute Mitternacht UTC aus → ergibt immer HEUTIGE Werte
+        utc_off = _utc_offset_hours(now)
+        today_midnight_utc = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=utc_off)
+        obs.date = ephem.Date(today_midnight_utc.strftime('%Y/%m/%d %H:%M:%S'))
 
         sun = ephem.Sun()
         moon = ephem.Moon()
@@ -358,8 +363,13 @@ v1.0 – Erstversion mit ephem + Fallback"""
             self.set_output('A8', '--:--')
             self.set_output('A9', '--:--')
 
-        # --- Mond ---
-        moon.compute(obs)
+        # --- Mond (aktueller Zeitpunkt für Phase, Mitternacht für Auf/Untergang) ---
+        obs_now = ephem.Observer()
+        obs_now.lat = str(lat)
+        obs_now.lon = str(lon)
+        obs_now.elevation = 0
+        obs_now.date = now.strftime('%Y/%m/%d %H:%M:%S')
+        moon.compute(obs_now)
         illumination = round(moon.phase)  # 0-100
         self.set_output('A5', illumination)
 
@@ -436,7 +446,7 @@ v1.0 – Erstversion mit ephem + Fallback"""
     # ----------------------------------------------------------------
 
     async def _update_loop(self):
-        """Periodische Aktualisierung"""
+        """Periodische Aktualisierung – immer auch um Mitternacht"""
         try:
             while self._running:
                 interval = self.get_input('E4')
@@ -445,7 +455,16 @@ v1.0 – Erstversion mit ephem + Fallback"""
                 except (ValueError, TypeError):
                     interval = 60
 
-                await asyncio.sleep(interval * 60)
+                # Berechne Sekunden bis nächste Mitternacht (+5 Sek Puffer)
+                now = datetime.now()
+                tomorrow = (now + timedelta(days=1)).replace(hour=0, minute=0, second=5, microsecond=0)
+                secs_to_midnight = (tomorrow - now).total_seconds()
+
+                # Schlafe das Minimum aus Intervall und Mitternacht
+                sleep_secs = min(interval * 60, secs_to_midnight)
+                sleep_secs = max(10, sleep_secs)  # Mindestens 10 Sek
+
+                await asyncio.sleep(sleep_secs)
 
                 if self._running:
                     self._do_calculate()

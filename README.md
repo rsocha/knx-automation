@@ -165,6 +165,9 @@ REST-API unter `http://<IP>:8000/api/`
 
 ## Changelog
 
+### v3.6.7
+- **Sonne & Mond v2.1** – Garantiertes Mitternachts-Update, ephem berechnet immer heutigen Tag
+
 ### v3.6.6
 - **Fronius Gen24 v1.6** – Neue Ausgänge A30 (Batterie Laden aktuell W) und A31 (Batterie Entladen aktuell W)
 
