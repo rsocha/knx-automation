@@ -73,6 +73,8 @@ class LogicManager:
     
     async def _load_custom_blocks(self):
         """Load custom block classes from Python files"""
+        import re as _re
+        
         logger.info(f"Loading custom blocks from: {self._custom_blocks_path}")
         logger.info(f"Path exists: {self._custom_blocks_path.exists()}")
         
@@ -81,7 +83,30 @@ class LogicManager:
             self._custom_blocks_path.mkdir(parents=True, exist_ok=True)
             return
         
-        # List all files in directory
+        # Deduplicate: if multiple files define the same block ID, keep the newest
+        py_files = list(self._custom_blocks_path.glob("*.py"))
+        id_to_files: dict[int, list] = {}  # block_id → [(file, mtime), ...]
+        for f in py_files:
+            try:
+                content = f.read_text(encoding='utf-8', errors='ignore')
+                for match in _re.finditer(r'^\s+ID\s*=\s*(\d+)', content, _re.MULTILINE):
+                    bid = int(match.group(1))
+                    if bid not in id_to_files:
+                        id_to_files[bid] = []
+                    id_to_files[bid].append((f, f.stat().st_mtime))
+            except Exception:
+                pass
+        
+        for bid, files in id_to_files.items():
+            if len(files) > 1:
+                # Keep newest, remove rest
+                files.sort(key=lambda x: x[1], reverse=True)
+                keep = files[0][0]
+                for dup_file, _ in files[1:]:
+                    logger.info(f"Removing duplicate block file: {dup_file.name} (block ID {bid}, keeping {keep.name})")
+                    dup_file.unlink(missing_ok=True)
+        
+        # Reload file list after dedup
         all_files = list(self._custom_blocks_path.iterdir())
         logger.info(f"Files in custom_blocks directory: {[f.name for f in all_files]}")
         
@@ -130,9 +155,23 @@ class LogicManager:
             raise
     
     async def upload_block_file(self, filename: str, content: bytes) -> Dict:
-        """Upload and register a new custom block file, auto-restart running instances"""
-        # Sanitize filename
-        safe_name = "".join(c for c in filename if c.isalnum() or c in "._-").rstrip()
+        """Upload and register a new custom block file, auto-restart running instances.
+        
+        Handles browser-renamed files (e.g. 'sonne_mond (1).py' → 'sonne_mond.py')
+        and deduplicates by block ID (removes old files defining the same block).
+        """
+        import re
+        
+        # Strip browser download suffixes: "name (1).py" → "name.py", "name_1.py" → "name.py"
+        clean = filename
+        # Remove " (N)" before extension  (browser default: "file (1).py")
+        clean = re.sub(r'\s*\(\d+\)\s*(?=\.py$)', '', clean)
+        # Remove "_N" or "-N" suffix before extension if it looks like a counter
+        # Only strip if the base name without the counter exists as a known pattern
+        clean = re.sub(r'[-_]\d+(?=\.py$)', lambda m: '' if re.search(r'[a-zA-Z]', clean[:m.start()]) else m.group(), clean)
+        
+        # Sanitize filename (keep alphanumeric, dots, underscores, hyphens)
+        safe_name = "".join(c for c in clean if c.isalnum() or c in "._-").rstrip()
         if not safe_name.endswith('.py'):
             safe_name += '.py'
         
@@ -141,7 +180,34 @@ class LogicManager:
         
         file_path = self._custom_blocks_path / safe_name
         
-        # Write file
+        # Parse block IDs from uploaded content to find duplicates BEFORE writing
+        uploaded_ids = set()
+        try:
+            content_str = content.decode('utf-8', errors='ignore')
+            # Match class-level ID = NNNNN assignments
+            for match in re.finditer(r'^\s+ID\s*=\s*(\d+)', content_str, re.MULTILINE):
+                uploaded_ids.add(int(match.group(1)))
+        except Exception:
+            pass
+        
+        # Find and remove existing files that define the same block IDs (dedup)
+        removed_dupes = []
+        if uploaded_ids:
+            for existing_file in list(self._custom_blocks_path.glob("*.py")):
+                if existing_file.name == safe_name:
+                    continue  # Will be overwritten anyway
+                try:
+                    existing_content = existing_file.read_text(encoding='utf-8', errors='ignore')
+                    for match in re.finditer(r'^\s+ID\s*=\s*(\d+)', existing_content, re.MULTILINE):
+                        if int(match.group(1)) in uploaded_ids:
+                            logger.info(f"Removing duplicate block file: {existing_file.name} (same block ID {match.group(1)} as {safe_name})")
+                            existing_file.unlink()
+                            removed_dupes.append(existing_file.name)
+                            break
+                except Exception as e:
+                    logger.debug(f"Could not check {existing_file.name}: {e}")
+        
+        # Write file (overwrites if same name)
         with open(file_path, 'wb') as f:
             f.write(content)
         
@@ -156,6 +222,8 @@ class LogicManager:
                 if restarted:
                     result["restarted"] = restarted
                     logger.info(f"Auto-restarted {len(restarted)} block instances: {restarted}")
+                if removed_dupes:
+                    result["removed_duplicates"] = removed_dupes
                 return result
             else:
                 return {"status": "warning", "file": safe_name, "message": "No LogicBlock classes found"}

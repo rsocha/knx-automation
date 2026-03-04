@@ -20,7 +20,7 @@ from logic.manager import ALL_BUILTIN_BLOCKS
 logger = logging.getLogger(__name__)
 
 # Single source of truth for version — update HERE only
-APP_VERSION = "3.6.7"
+APP_VERSION = "3.6.8"
 router = APIRouter()
 
 # ============ Global WebSocket broadcast for telegram log ============
@@ -2380,6 +2380,16 @@ async def trigger_chart_record():
     """Manually trigger a recording cycle."""
     recorded = await chart_recorder.record_once()
     return {"status": "recorded", "count": recorded}
+
+@router.get("/charts/costs/hourly")
+async def get_hourly_costs(hours: int = 24):
+    """Get hourly energy costs (consumption × price)."""
+    return chart_recorder.get_hourly_costs(hours)
+
+@router.get("/charts/costs/daily")
+async def get_daily_costs(days: int = 30):
+    """Get daily energy costs for the last N days."""
+    return chart_recorder.get_daily_costs(days)
 
 
 # ============ SYSTEM API ============

@@ -165,7 +165,10 @@ REST-API unter `http://<IP>:8000/api/`
 
 ## Changelog
 
-### v3.6.7
+### v3.6.8
+- **Kosten-Dashboard** – Neuer "Kosten" Tab: Stundenkosten (Netzbezug × EPEX-Preis), Tageskosten (30 Tage), Monatsübersicht
+- **Netzbezug-KO** – Neues Binding "Netzbezug" für Strom vom Netz (getrennt von Gesamtverbrauch)
+- **Block-Upload Fix** – Browser-Suffixe wie `(1)`, `(2)` werden beim Upload entfernt; Duplikaterkennung über Block-ID verhindert doppelte Dateien
 - **Sonne & Mond v2.1** – Garantiertes Mitternachts-Update, ephem berechnet immer heutigen Tag
 
 ### v3.6.6

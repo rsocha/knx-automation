@@ -9,6 +9,11 @@
     "unit": "",
     "factor": 1
   },
+  "gridImport": {
+    "address": "IKO:1_Fronius Gen24 Solar API:A10",
+    "unit": "",
+    "factor": 1
+  },
   "batteryCharge": {
     "address": "IKO:1_Fronius Gen24 Solar API:A30",
     "unit": "",
@@ -35,7 +40,7 @@
     "factor": 1
   },
   "electricityPrice": {
-    "address": "IKO:5_EPEX Spot Preis:A7",
+    "address": "IKO:5_EPEX Spot Preis:A10",
     "unit": "",
     "factor": 1
   }

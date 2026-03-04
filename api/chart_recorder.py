@@ -228,6 +228,197 @@ class ChartRecorder:
 
         return result
 
+    def get_hourly_costs(self, hours: int = 24) -> list:
+        """Calculate hourly energy costs from grid import and electricity price data.
+        
+        Cost per hour = avg_gridImport_W * 1h / 1000 * price_ct_per_kWh / 100 = EUR
+        
+        Returns: [{hour: "2026-03-04 14:00", grid_wh: float, price_ct: float, cost_eur: float}, ...]
+        """
+        if not self._db:
+            return []
+
+        cutoff = time.time() - (hours * 3600)
+        
+        try:
+            # Get hourly average grid import (W → Wh per hour)
+            grid_cursor = self._db.execute(
+                """SELECT 
+                    strftime('%Y-%m-%d %H:00', ts, 'unixepoch', 'localtime') as hour_str,
+                    AVG(value) as avg_w,
+                    COUNT(*) as cnt
+                FROM history 
+                WHERE metric = 'gridImport' AND ts >= ?
+                GROUP BY hour_str
+                ORDER BY hour_str ASC""",
+                (cutoff,)
+            )
+            grid_rows = {row[0]: {"avg_w": row[1], "cnt": row[2]} for row in grid_cursor.fetchall()}
+            
+            # Get hourly average price (ct/kWh)
+            price_cursor = self._db.execute(
+                """SELECT 
+                    strftime('%Y-%m-%d %H:00', ts, 'unixepoch', 'localtime') as hour_str,
+                    AVG(value) as avg_price
+                FROM history 
+                WHERE metric = 'electricityPrice' AND ts >= ?
+                GROUP BY hour_str
+                ORDER BY hour_str ASC""",
+                (cutoff,)
+            )
+            price_rows = {row[0]: row[1] for row in price_cursor.fetchall()}
+            
+            # Combine: cost = grid_Wh * price_ct / (1000 * 100) = EUR
+            all_hours = sorted(set(list(grid_rows.keys()) + list(price_rows.keys())))
+            result = []
+            
+            for hour_str in all_hours:
+                grid = grid_rows.get(hour_str)
+                price_ct = price_rows.get(hour_str)
+                
+                # Grid import in Wh (avg W over 1 hour = Wh)
+                grid_wh = grid["avg_w"] if grid else 0
+                price = price_ct if price_ct is not None else 0
+                
+                # Cost in EUR: Wh / 1000 = kWh * ct/kWh / 100 = EUR
+                cost_eur = (grid_wh / 1000) * (price / 100) if price else 0
+                
+                result.append({
+                    "hour": hour_str,
+                    "grid_wh": round(grid_wh, 1),
+                    "price_ct": round(price, 2) if price_ct is not None else None,
+                    "cost_eur": round(cost_eur, 4),
+                    "cost_ct": round(cost_eur * 100, 2),
+                })
+            
+            return result
+        except Exception as e:
+            logger.error(f"Error calculating hourly costs: {e}")
+            return []
+
+    def get_daily_costs(self, days: int = 30) -> list:
+        """Calculate daily energy costs from grid import over a period.
+        
+        Returns: [{date: "2026-03-04", grid_kwh: float, avg_price_ct: float, 
+                   cost_eur: float, cost_ct: float}, ...]
+        """
+        if not self._db:
+            return []
+
+        cutoff = time.time() - (days * 86400)
+        
+        try:
+            # Get hourly grid import data, then sum per day
+            grid_cursor = self._db.execute(
+                """SELECT 
+                    date(ts, 'unixepoch', 'localtime') as day,
+                    strftime('%Y-%m-%d %H:00', ts, 'unixepoch', 'localtime') as hour_str,
+                    AVG(value) as avg_w,
+                    COUNT(*) as cnt
+                FROM history 
+                WHERE metric = 'gridImport' AND ts >= ?
+                GROUP BY hour_str
+                ORDER BY hour_str ASC""",
+                (cutoff,)
+            )
+            # Group by day → sum up hourly Wh
+            grid_by_day = {}
+            for row in grid_cursor.fetchall():
+                day = row[0]
+                avg_w = row[1]  # avg W in this hour ≈ Wh for that hour
+                if day not in grid_by_day:
+                    grid_by_day[day] = 0
+                grid_by_day[day] += avg_w  # Sum of hourly Wh = total Wh/day
+
+            price_cursor = self._db.execute(
+                """SELECT 
+                    date(ts, 'unixepoch', 'localtime') as day,
+                    strftime('%Y-%m-%d %H:00', ts, 'unixepoch', 'localtime') as hour_str,
+                    AVG(value) as avg_price
+                FROM history 
+                WHERE metric = 'electricityPrice' AND ts >= ?
+                GROUP BY hour_str
+                ORDER BY hour_str ASC""",
+                (cutoff,)
+            )
+            # For daily costs: use per-hour price × per-hour grid import
+            hourly_costs = {}  # day → total cost in EUR
+            hourly_prices = {}  # day → list of prices for avg
+            for row in price_cursor.fetchall():
+                day = row[0]
+                hour_str = row[1]
+                price_ct = row[2]
+                if day not in hourly_costs:
+                    hourly_costs[day] = 0
+                    hourly_prices[day] = []
+                hourly_prices[day].append(price_ct)
+
+            # Now get per-hour grid import to multiply with per-hour price
+            grid_hourly_cursor = self._db.execute(
+                """SELECT 
+                    date(ts, 'unixepoch', 'localtime') as day,
+                    strftime('%H', ts, 'unixepoch', 'localtime') as hour_num,
+                    AVG(value) as avg_w
+                FROM history 
+                WHERE metric = 'gridImport' AND ts >= ?
+                GROUP BY day, hour_num
+                ORDER BY day, hour_num ASC""",
+                (cutoff,)
+            )
+            price_hourly_cursor = self._db.execute(
+                """SELECT 
+                    date(ts, 'unixepoch', 'localtime') as day,
+                    strftime('%H', ts, 'unixepoch', 'localtime') as hour_num,
+                    AVG(value) as avg_price
+                FROM history 
+                WHERE metric = 'electricityPrice' AND ts >= ?
+                GROUP BY day, hour_num
+                ORDER BY day, hour_num ASC""",
+                (cutoff,)
+            )
+            
+            grid_hourly = {}  # (day, hour) → avg_w
+            for row in grid_hourly_cursor.fetchall():
+                grid_hourly[(row[0], row[1])] = row[2]
+            
+            price_hourly = {}  # (day, hour) → avg_price_ct
+            for row in price_hourly_cursor.fetchall():
+                price_hourly[(row[0], row[1])] = row[2]
+            
+            # Calculate daily costs
+            all_days = sorted(set(list(grid_by_day.keys()) + list(hourly_costs.keys())))
+            result = []
+            
+            for day in all_days:
+                total_wh = grid_by_day.get(day, 0)
+                total_cost_eur = 0
+                
+                # Sum hourly: cost_h = avg_w_h * 1h / 1000 * price_ct_h / 100
+                for h in range(24):
+                    hour_str = f"{h:02d}"
+                    key = (day, hour_str)
+                    avg_w = grid_hourly.get(key, 0)
+                    price_ct = price_hourly.get(key)
+                    if price_ct is not None and avg_w > 0:
+                        total_cost_eur += (avg_w / 1000) * (price_ct / 100)
+                
+                avg_price = 0
+                if day in hourly_prices and hourly_prices[day]:
+                    avg_price = sum(hourly_prices[day]) / len(hourly_prices[day])
+                
+                result.append({
+                    "date": day,
+                    "grid_kwh": round(total_wh / 1000, 2),
+                    "avg_price_ct": round(avg_price, 2),
+                    "cost_eur": round(total_cost_eur, 4),
+                    "cost_ct": round(total_cost_eur * 100, 2),
+                })
+            
+            return result
+        except Exception as e:
+            logger.error(f"Error calculating daily costs: {e}")
+            return []
+
     def cleanup_old_data(self):
         """Remove data points older than MAX_AGE_DAYS."""
         if not self._db:
