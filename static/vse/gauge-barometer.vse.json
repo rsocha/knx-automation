@@ -33,6 +33,8 @@
     "var18": { "name": "Schwelle HIGH ab", "type": "number", "default": 2000 },
     "var19": { "name": "Schwelle MEDIUM ab", "type": "number", "default": 500 },
     "var20": { "name": "Label Deckkraft (0-100)", "type": "number", "default": 70 },
+    "var21": { "name": "Wert Schriftgröße (px)", "type": "number", "default": 16 },
+    "var22": { "name": "Einheit Schriftgröße (px)", "type": "number", "default": 12 },
     "unit": { "name": "Einheit", "type": "text", "default": "mbar" }
   }
 }

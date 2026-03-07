@@ -165,10 +165,15 @@ REST-API unter `http://<IP>:8000/api/`
 
 ## Changelog
 
+### v3.6.9
+- **Gauge Widget** – Wert- und Einheit-Schriftgröße jetzt einstellbar (var21/var22)
+- **Visu Edit-Modus** – Switch/Light Widget toggelt nicht mehr beim Verschieben im Bearbeitungsmodus (transparenter Overlay blockiert Klicks)
+
 ### v3.6.8
-- **Kosten-Dashboard** – Neuer "Kosten" Tab: Stundenkosten (Netzbezug × EPEX-Preis), Tageskosten (30 Tage), Monatsübersicht
+- **Kosten-Dashboard** – Neuer "Kosten" Tab: Stundenkosten (Netzbezug × EPEX-Preis), Tageskosten (30 Tage), Monatsübersicht mit Fallback auf Verbrauchsdaten
 - **Netzbezug-KO** – Neues Binding "Netzbezug" für Strom vom Netz (getrennt von Gesamtverbrauch)
 - **Block-Upload Fix** – Browser-Suffixe wie `(1)`, `(2)` werden beim Upload entfernt; Duplikaterkennung über Block-ID verhindert doppelte Dateien
+- **VSE Widget-Add Fix** – Typ-Mismatch behoben: Alle VSE-Widgets (Strompreis, Gauge, Sensor etc.) können wieder hinzugefügt werden
 - **Sonne & Mond v2.1** – Garantiertes Mitternachts-Update, ephem berechnet immer heutigen Tag
 
 ### v3.6.6

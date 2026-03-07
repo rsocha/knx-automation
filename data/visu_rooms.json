@@ -19,8 +19,8 @@
           "var12": 17,
           "var25": 13
         },
-        "x": 13,
-        "y": 89,
+        "x": 21,
+        "y": 90,
         "widthOverride": 122,
         "heightOverride": 108
       },
@@ -30,13 +30,13 @@
         "label": "Epex Strom",
         "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
         "koBindings": {
-          "ko1": "IKO:3_EPEX Spot Preis:A17"
+          "ko1": "IKO:5_EPEX Spot Preis:A17"
         },
         "variableValues": {},
-        "x": 8,
-        "y": 229,
-        "widthOverride": 376,
-        "heightOverride": 286
+        "x": 12,
+        "y": 257,
+        "widthOverride": 370,
+        "heightOverride": 271
       },
       {
         "id": "a5e952ec-5c6b-4bfe-a4bd-1628ca2c2805",
@@ -51,10 +51,12 @@
           "var1": 0,
           "var2": 8000,
           "var15": "PV-Leistung",
-          "unit": "W"
+          "unit": " "
         },
-        "x": 9,
-        "y": 531
+        "x": 185,
+        "y": 84,
+        "widthOverride": 142,
+        "heightOverride": 146
       },
       {
         "id": "d1b32d5a-aeaf-412f-aab3-810e8303c0a7",
@@ -93,6 +95,22 @@
         "y": 25,
         "widthOverride": 140,
         "heightOverride": 40
+      },
+      {
+        "id": "97b3b715-2469-4e80-80a5-f746f34e2caf",
+        "templateId": "strompreis-chart",
+        "label": "Strompreis Morgen",
+        "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
+        "koBindings": {
+          "ko1": "IKO:5_EPEX Spot Preis:A18"
+        },
+        "variableValues": {
+          "var1": "Stundenpreise morgen"
+        },
+        "x": 15,
+        "y": 547,
+        "widthOverride": 365,
+        "heightOverride": 248
       }
     ]
   },

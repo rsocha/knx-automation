@@ -40,7 +40,7 @@
     "factor": 1
   },
   "electricityPrice": {
-    "address": "IKO:5_EPEX Spot Preis:A10",
+    "address": "IKO:14_EPEX Spot Preis:A7",
     "unit": "",
     "factor": 1
   }
