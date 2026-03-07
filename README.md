@@ -165,6 +165,11 @@ REST-API unter `http://<IP>:8000/api/`
 
 ## Changelog
 
+### v3.7.0
+- **Media Player Redesign** – Komplett überarbeitetes Sonos-Widget: Play/Stop Toggle auf Haupttaste, Pause separat, dunkles glassmorphes Design, animierter Cover-Rahmen bei Wiedergabe, Status-Indikator, kompakter Aufbau
+- **IKO Dialog Fix** – "Generieren"-Button im Popup war durch `overflow-hidden` abgeschnitten; Button jetzt immer sichtbar am unteren Rand
+- **Adress-Toolbar** – Buttons auf zwei Zeilen aufgeteilt (Filter+Suche oben, Aktionen unten) für bessere Sichtbarkeit
+
 ### v3.6.9
 - **Gauge Widget** – Wert- und Einheit-Schriftgröße jetzt einstellbar (var21/var22)
 - **Visu Edit-Modus** – Switch/Light Widget toggelt nicht mehr beim Verschieben im Bearbeitungsmodus (transparenter Overlay blockiert Klicks)
