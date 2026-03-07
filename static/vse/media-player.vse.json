@@ -6,7 +6,7 @@
   "author": "KNX Automation",
   "version": "2.0",
   "width": 340,
-  "height": 300,
+  "height": 420,
   "render": "mediaPlayer",
   "inputs": {
     "ko1": { "name": "Titel (A4)", "type": "text", "description": "Aktueller Songtitel" },

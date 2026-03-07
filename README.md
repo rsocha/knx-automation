@@ -165,6 +165,9 @@ REST-API unter `http://<IP>:8000/api/`
 
 ## Changelog
 
+### v3.7.1
+- **Visu Zoom** – Device-Frame hat jetzt Zoom-Steuerung (50%–200%) mit +/- Buttons; bei 200% scrollt der Bereich automatisch; keine maximale Größenbeschränkung mehr
+
 ### v3.7.0
 - **Media Player Redesign** – Komplett überarbeitetes Sonos-Widget: Play/Stop Toggle auf Haupttaste, Pause separat, dunkles glassmorphes Design, animierter Cover-Rahmen bei Wiedergabe, Status-Indikator, kompakter Aufbau
 - **IKO Dialog Fix** – "Generieren"-Button im Popup war durch `overflow-hidden` abgeschnitten; Button jetzt immer sichtbar am unteren Rand
