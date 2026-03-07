@@ -16,13 +16,16 @@
         "variableValues": {
           "var1": "Lightbulb",
           "var2": "Power",
+          "var7": 32,
+          "var8": 14,
           "var12": 17,
-          "var25": 13
+          "var25": 10,
+          "var28": 10
         },
-        "x": 21,
-        "y": 90,
-        "widthOverride": 122,
-        "heightOverride": 108
+        "x": 23,
+        "y": 75,
+        "widthOverride": 99,
+        "heightOverride": 97
       },
       {
         "id": "13cc9aa2-31bd-424d-82f0-6e2f7423df16",
@@ -68,13 +71,15 @@
         },
         "variableValues": {
           "var2": "Aussen Temp.",
-          "var4": 26,
+          "var4": 22,
+          "var5": "0.6",
+          "var8": "0.85",
           "var12": 25
         },
-        "x": 160,
-        "y": 24,
-        "widthOverride": 160,
-        "heightOverride": 40
+        "x": 147,
+        "y": 20,
+        "widthOverride": 128,
+        "heightOverride": 30
       },
       {
         "id": "a88cd009-a19f-47c1-9ef5-af5a40fdbc8a",
@@ -86,15 +91,17 @@
         },
         "variableValues": {
           "var2": "Batterie",
-          "var4": 25,
+          "var4": 22,
+          "var5": "0.6",
+          "var8": "0.85",
           "var11": "24,242,38",
           "var12": 25,
           "unit": "%"
         },
-        "x": 12,
-        "y": 25,
-        "widthOverride": 140,
-        "heightOverride": 40
+        "x": 20,
+        "y": 20,
+        "widthOverride": 117,
+        "heightOverride": 30
       },
       {
         "id": "97b3b715-2469-4e80-80a5-f746f34e2caf",

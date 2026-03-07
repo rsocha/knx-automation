@@ -165,6 +165,11 @@ REST-API unter `http://<IP>:8000/api/`
 
 ## Changelog
 
+### v3.7.2
+- **Light Widget** – Icon-Position per var28 (Y) und var29 (X) verschiebbar
+- **Widget Bearbeiten-Dialog** – ScrollArea vergrößert (`calc(85vh-180px)`), alle Variablen scrollbar; Tab zeigt Anzahl
+- **VSE Template Cache-Fix** – Templates werden jetzt mit `?v=timestamp` geladen, keine veralteten Variablen mehr durch Browser-Cache
+
 ### v3.7.1
 - **Visu Zoom** – Device-Frame hat jetzt Zoom-Steuerung (50%–200%) mit +/- Buttons; bei 200% scrollt der Bereich automatisch; keine maximale Größenbeschränkung mehr
 
