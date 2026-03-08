@@ -24,8 +24,8 @@
         },
         "x": 23,
         "y": 75,
-        "widthOverride": 99,
-        "heightOverride": 97
+        "widthOverride": 108,
+        "heightOverride": 103
       },
       {
         "id": "13cc9aa2-31bd-424d-82f0-6e2f7423df16",
@@ -38,8 +38,8 @@
         "variableValues": {},
         "x": 12,
         "y": 257,
-        "widthOverride": 370,
-        "heightOverride": 271
+        "widthOverride": 368,
+        "heightOverride": 270
       },
       {
         "id": "a5e952ec-5c6b-4bfe-a4bd-1628ca2c2805",
@@ -76,10 +76,10 @@
           "var8": "0.85",
           "var12": 25
         },
-        "x": 147,
-        "y": 20,
-        "widthOverride": 128,
-        "heightOverride": 30
+        "x": 126,
+        "y": 19,
+        "widthOverride": 142,
+        "heightOverride": 40
       },
       {
         "id": "a88cd009-a19f-47c1-9ef5-af5a40fdbc8a",
@@ -100,8 +100,8 @@
         },
         "x": 20,
         "y": 20,
-        "widthOverride": 117,
-        "heightOverride": 30
+        "widthOverride": 138,
+        "heightOverride": 40
       },
       {
         "id": "97b3b715-2469-4e80-80a5-f746f34e2caf",
@@ -114,10 +114,10 @@
         "variableValues": {
           "var1": "Stundenpreise morgen"
         },
-        "x": 15,
-        "y": 547,
-        "widthOverride": 365,
-        "heightOverride": 248
+        "x": 13,
+        "y": 546,
+        "widthOverride": 404,
+        "heightOverride": 270
       }
     ]
   },
@@ -174,27 +174,33 @@
             "cardType": "ring",
             "label": "PV Ertrag",
             "icon": "solar-power",
-            "iconColor": "rgba(77,208,225,1)",
+            "iconSize": 35,
+            "iconColor": "rgba(255,167,38,1)",
             "unit": "W",
-            "decimals": 0,
+            "decimals": 1,
             "action": "none",
-            "borderColor": "rgba(100,181,246,0.45)",
-            "borderWidth": 2,
+            "borderColor": "rgba(102,187,106,0.45)",
             "bgOpacity": 6,
+            "fontSize": 20,
             "koAddress": "IKO:1_Fronius Gen24 Solar API:A4",
-            "_yaml": "type: ring\nentity: IKO:1_Fronius Gen24 Solar API:A4\nname: PV Ertrag\nicon: mdi:solar-power\nicon_color: rgba(77,208,225,1)\nunit: W\ndecimals: 0\nring:\n  min: 0\n  max: 10000\n  width: 7\n  color: rgba(255,167,38,1)\nstyle:\n  border_color: rgba(100,181,246,0.45)\n  border_width: 2\n",
+            "labelPosition": "top",
+            "labelOffsetX": 0,
+            "labelOffsetY": 0,
+            "_yaml": "type: ring\nentity: IKO:1_Fronius Gen24 Solar API:A4\nname: PV Ertrag\nicon: mdi:solar-power\nicon_color: rgba(255,167,38,1)\nunit: W\ndecimals: 1\nring:\n  min: 0\n  max: 10000\n  width: 9\n  colorLow: rgb(76,175,80)\n  colorMid: rgb(255,193,7)\n  colorHigh: rgb(244,67,54)\nstyle:\n  border_color: rgba(102,187,106,0.45)\n  font_size: 20\n  icon_size: 35\nlabel_position: top        \nlabel_offset_x: 0         # Label horizontal verschieben \nlabel_offset_y: 0        # Label vertikal verschieben \n",
             "ring": {
               "min": 0,
               "max": 10000,
-              "width": 7,
-              "color": "rgba(255,167,38,1)"
+              "width": 9,
+              "colorLow": "rgb(76,175,80)",
+              "colorMid": "rgb(255,193,7)",
+              "colorHigh": "rgb(244,67,54)"
             }
           }
         },
-        "x": 20,
-        "y": 20,
-        "widthOverride": 154,
-        "heightOverride": 143
+        "x": 0,
+        "y": 26,
+        "widthOverride": 184,
+        "heightOverride": 201
       }
     ],
     "background": {

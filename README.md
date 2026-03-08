@@ -165,6 +165,19 @@ REST-API unter `http://<IP>:8000/api/`
 
 ## Changelog
 
+### v3.7.5
+- **Custom Card Vorschau-Fix** – Ring-Vorschau im Dialog zeigt jetzt Gradient, Label-Position, Icon-Offset, Padding und Label-Größe korrekt an
+- **Custom Card Padding** – Neues YAML-Feld `style.padding` für Abstand zum Rahmen (Standard: 8px)
+- **Custom Card Label-Größe** – `style.label_size` wird jetzt auch in Ring-Cards angewendet
+
+### v3.7.4
+- **Proportionales Widget-Scaling** – Alle VSE-Widgets skalieren jetzt proportional beim Resize (CSS `transform: scale()`), statt dass Elemente verschwinden
+- **Custom Card Ring** – Label-Position (`label_position: top/bottom`), Label-Offset (`label_offset_x/y`), Icon-Offset (`icon_offset_x/y`) im YAML konfigurierbar
+
+### v3.7.3
+- **Custom Card RingGauge Upgrade** – Ring im ring-tile-card Style: Farbverlauf (colorLow/colorMid/colorHigh), Punkt-Indikator am Wert, Glow-Effekt, dickerer Ring
+- **Gauge VSE Widget** – bleibt unverändert (klassischer Zeiger-Stil)
+
 ### v3.7.2
 - **Light Widget** – Icon-Position per var28 (Y) und var29 (X) verschiebbar
 - **Widget Bearbeiten-Dialog** – ScrollArea vergrößert (`calc(85vh-180px)`), alle Variablen scrollbar; Tab zeigt Anzahl

@@ -4,7 +4,7 @@
   "description": "Rundes Gauge mit Zeiger, Skala, optionalem Referenzzeiger (KO2) und dynamischer Rahmenfarbe",
   "category": "Sensoren",
   "author": "VSE",
-  "version": "1.0",
+  "version": "1.1",
   "width": 200,
   "height": 200,
   "render": "gaugeBarometer",
