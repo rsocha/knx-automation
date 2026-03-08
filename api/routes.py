@@ -20,7 +20,7 @@ from logic.manager import ALL_BUILTIN_BLOCKS
 logger = logging.getLogger(__name__)
 
 # Single source of truth for version — update HERE only
-APP_VERSION = "3.8.2"
+APP_VERSION = "3.9.2"
 router = APIRouter()
 
 # ============ Global WebSocket broadcast for telegram log ============
@@ -521,6 +521,66 @@ async def delete_vse_template(template_id: str):
     except Exception as e:
         logger.error(f"Error deleting VSE template: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# ── Card Presets (User-Created Custom Card Templates) ──────────────────
+
+CARD_PRESETS_DIR = Path("data/card-presets")
+
+@router.get("/card-presets")
+async def list_card_presets():
+    """List all user-created card presets"""
+    CARD_PRESETS_DIR.mkdir(parents=True, exist_ok=True)
+    presets = []
+    for f in sorted(CARD_PRESETS_DIR.glob("*.json")):
+        try:
+            with open(f, 'r', encoding='utf-8') as fh:
+                data = json.load(fh)
+                presets.append(data)
+        except Exception:
+            pass
+    return presets
+
+@router.post("/card-presets")
+async def save_card_preset(request: Request):
+    """Save a card preset"""
+    try:
+        data = await request.json()
+        preset_id = data.get("id") or f"preset_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        # Sanitize ID
+        preset_id = "".join(c for c in preset_id if c.isalnum() or c in "-_").strip()
+        if not preset_id:
+            raise HTTPException(status_code=400, detail="Ungültige Preset-ID")
+
+        preset = {
+            "id": preset_id,
+            "name": data.get("name", preset_id),
+            "description": data.get("description", ""),
+            "icon": data.get("icon", "card-text"),
+            "yaml": data.get("yaml", ""),
+            "created": datetime.now().isoformat(),
+        }
+
+        CARD_PRESETS_DIR.mkdir(parents=True, exist_ok=True)
+        filepath = CARD_PRESETS_DIR / f"{preset_id}.json"
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(preset, f, ensure_ascii=False, indent=2)
+
+        logger.info(f"Saved card preset: {preset_id}")
+        return {"status": "saved", "id": preset_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error saving card preset: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/card-presets/{preset_id}")
+async def delete_card_preset(preset_id: str):
+    """Delete a card preset"""
+    filepath = CARD_PRESETS_DIR / f"{preset_id}.json"
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="Preset nicht gefunden")
+    filepath.unlink()
+    return {"status": "deleted", "id": preset_id}
 
 @router.get("/visu/config")
 async def get_visu_config():

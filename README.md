@@ -165,6 +165,19 @@ REST-API unter `http://<IP>:8000/api/`
 
 ## Changelog
 
+### v3.9.2
+- **Resize komplett überarbeitet** – CSS-Scaling entfernt, Widgets bekommen echte Zielgröße; kein unscharfer Text, kein Clipping
+- **Doppelklick zum Bearbeiten** – Keine schwebenden Buttons mehr; Doppelklick öffnet Bearbeiten-Dialog
+- **Löschen-Button** – Kleiner Mülleimer unten links im Widget (Edit-Modus)
+- **Edit-Modus** – Gestrichelte Umrandung, Hinweis "Doppelklick = Bearbeiten"
+
+### v3.9.1
+- **Panel Card** – `type: panel` mit Hold-Buttons, Status-Kacheln, Alert-Banner; Preset "Garage Panel"
+
+### v3.9.0
+- **Custom Cards proportional skalieren** – Beim Resize wird jetzt CSS `transform: scale()` verwendet statt den Inhalt abzuschneiden; Card wird in Design-Größe gerendert und dann auf die Zielgröße skaliert
+- **Eigene Card-Vorlagen erstellen** – Im YAML-Tab: "Speichern" Button zum Anlegen eigener Presets, "Export" als .yaml Datei, "Import" von .yaml Dateien; eigene Vorlagen erscheinen im Bereich "Meine Vorlagen" mit Löschen-Option; Backend-API: GET/POST/DELETE `/api/v1/card-presets`
+
 ### v3.8.2
 - **Müllabfuhr Datumslogik** – Entity liefert jetzt ein Datum (vom iCal-Baustein), Card berechnet automatisch Tage bis Abholung und zeigt "in X Tagen (DD.MM.)" / "Morgen (DD.MM.)" / "Heute (DD.MM.)"; Farbwechsel: 1 Tag vorher = Warnfarbe, am Tag = rot; "Nächste Abholung" wird automatisch aus dem frühesten Termin berechnet (kein extra `next_entity` KO nötig); Datumsformate: ISO `2025-03-22`, deutsch `22.03.2025` oder `22.03.`, Unix-Timestamp
 

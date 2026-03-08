@@ -16,16 +16,16 @@
         "variableValues": {
           "var1": "Lightbulb",
           "var2": "Power",
-          "var7": 32,
+          "var7": 29,
           "var8": 14,
-          "var12": 17,
+          "var23": 7,
           "var25": 10,
           "var28": 10
         },
         "x": 285,
         "y": 10,
-        "widthOverride": 86,
-        "heightOverride": 78
+        "widthOverride": 92,
+        "heightOverride": 86
       },
       {
         "id": "13cc9aa2-31bd-424d-82f0-6e2f7423df16",
@@ -53,6 +53,7 @@
         "variableValues": {
           "var1": 0,
           "var2": 8000,
+          "var11": 95,
           "var15": "PV-Leistung",
           "unit": " "
         },
@@ -76,10 +77,10 @@
           "var8": "0.85",
           "var12": 25
         },
-        "x": 126,
-        "y": 19,
-        "widthOverride": 142,
-        "heightOverride": 40
+        "x": 133,
+        "y": 15,
+        "widthOverride": 133,
+        "heightOverride": 38
       },
       {
         "id": "a88cd009-a19f-47c1-9ef5-af5a40fdbc8a",
@@ -99,9 +100,9 @@
           "unit": "%"
         },
         "x": 18,
-        "y": 18,
-        "widthOverride": 128,
-        "heightOverride": 46
+        "y": 16,
+        "widthOverride": 112,
+        "heightOverride": 37
       },
       {
         "id": "97b3b715-2469-4e80-80a5-f746f34e2caf",
@@ -184,7 +185,7 @@
             "label": "🗑️ Müllabfuhr",
             "icon": "",
             "action": "none",
-            "_yaml": "type: waste\nname: \"🗑️ Müllabfuhr\"\nwaste:\n  next_entity: 1/2/100\n  items:\n    - name: Restmüll\n      entity: IKO:14_iCal-Termine:A4\n      icon: mdi:trash-can\n      color: \"158,158,158\"\n      color_today: \"244,67,54\"\n      color_tomorrow: \"255,152,0\"\n    - name: Gelber Sack\n      entity: 1/2/102\n      icon: mdi:trash-can\n      color: \"158,158,158\"\n      color_today: \"244,67,54\"\n      color_tomorrow: \"255,235,59\"\n    - name: Papiertonne\n      entity: 1/2/103\n      icon: mdi:trash-can\n      color: \"158,158,158\"\n      color_today: \"244,67,54\"\n      color_tomorrow: \"33,150,243\"\n    - name: Werkstoffzentrum\n      entity: 1/2/104\n      icon: mdi:trash-can\n      color: \"158,158,158\"\n      color_today: \"244,67,54\"\n      color_tomorrow: \"139,69,19\"\n",
+            "_yaml": "type: waste\nname: \"🗑️ Müllabfuhr\"\nwaste:\n  next_entity: 1/2/100\n  items:\n    - name: Restmüll\n      entity: IKO:14_iCal-Termine:A4\n      icon: mdi:trash-can\n      color: \"158,158,158\"\n      color_today: \"244,67,54\"\n      color_tomorrow: \"255,152,0\"\n    - name: Gelber Sack\n      entity: IKO:14_iCal-Termine:A14\n      icon: mdi:trash-can\n      color: \"158,158,158\"\n      color_today: \"244,67,54\"\n      color_tomorrow: \"255,235,59\"\n    - name: Papiertonne\n      entity: IKO:14_iCal-Termine:A7\n      icon: mdi:trash-can\n      color: \"158,158,158\"\n      color_today: \"244,67,54\"\n      color_tomorrow: \"33,150,243\"\n    - name: Werkstoffzentrum\n      entity: IKO:14_iCal-Termine:A19\n      icon: mdi:trash-can\n      color: \"158,158,158\"\n      color_today: \"244,67,54\"\n      color_tomorrow: \"139,69,19\"\n",
             "waste": {
               "nextEntity": "1/2/100",
               "items": [
@@ -193,41 +194,41 @@
                   "entity": "IKO:14_iCal-Termine:A4",
                   "icon": "trash-can",
                   "color": "158,158,158",
-                  "color_today": "244,67,54",
-                  "color_tomorrow": "255,152,0"
+                  "colorToday": "244,67,54",
+                  "colorTomorrow": "255,152,0"
                 },
                 {
                   "name": "Gelber Sack",
-                  "entity": "1/2/102",
+                  "entity": "IKO:14_iCal-Termine:A14",
                   "icon": "trash-can",
                   "color": "158,158,158",
-                  "color_today": "244,67,54",
-                  "color_tomorrow": "255,235,59"
+                  "colorToday": "244,67,54",
+                  "colorTomorrow": "255,235,59"
                 },
                 {
                   "name": "Papiertonne",
-                  "entity": "1/2/103",
+                  "entity": "IKO:14_iCal-Termine:A7",
                   "icon": "trash-can",
                   "color": "158,158,158",
-                  "color_today": "244,67,54",
-                  "color_tomorrow": "33,150,243"
+                  "colorToday": "244,67,54",
+                  "colorTomorrow": "33,150,243"
                 },
                 {
                   "name": "Werkstoffzentrum",
-                  "entity": "1/2/104",
+                  "entity": "IKO:14_iCal-Termine:A19",
                   "icon": "trash-can",
                   "color": "158,158,158",
-                  "color_today": "244,67,54",
-                  "color_tomorrow": "139,69,19"
+                  "colorToday": "244,67,54",
+                  "colorTomorrow": "139,69,19"
                 }
               ]
             }
           }
         },
-        "x": 9,
-        "y": 457,
-        "widthOverride": 380,
-        "heightOverride": 420
+        "x": 24,
+        "y": 474,
+        "widthOverride": 361,
+        "heightOverride": 378
       }
     ],
     "background": {
@@ -256,15 +257,22 @@
             "iconColor": "rgba(255,167,38,1)",
             "unit": "W",
             "decimals": 1,
-            "koAddress": "IKO:1_Fronius Gen24 Solar API:A4",
             "action": "none",
+            "layout": "horizontal",
             "borderColor": "rgba(102,187,106,0.45)",
-            "fontSize": 20,
+            "borderWidth": 1,
+            "bgColor": "rgba(255,255,255,0.06)",
+            "bgOpacity": 6,
+            "borderRadius": 14,
+            "textColor": "rgba(255,255,255,0.95)",
+            "fontSize": 16,
             "labelSize": 14,
+            "conditions": [],
+            "koAddress": "IKO:1_Fronius Gen24 Solar API:A4",
             "padding": 4,
             "labelPosition": "top",
             "iconOffsetY": -5,
-            "_yaml": "type: ring\nentity: IKO:1_Fronius Gen24 Solar API:A4\nname: PV Ertrag\nicon: mdi:solar-power\nicon_color: rgba(255,167,38,1)\nunit: W\ndecimals: 1\nlabel_position: top\nring:\n  min: 0\n  max: 10000\n  width: 10\n  colorLow: rgb(76,175,80)\n  colorMid: rgb(255,193,7)\n  colorHigh: rgb(244,67,54)\nstyle:\n  border_color: rgba(102,187,106,0.45)\n  font_size: 20\n  icon_size: 31\n  label_size: 14       # Bezeichnung-Größe\n  padding: 4           # Abstand zum Rahmen (Standard: 8)\nicon_offset_y: -5\n",
+            "_yaml": "type: ring\nentity: IKO:1_Fronius Gen24 Solar API:A4\nname: PV Ertrag\nicon: mdi:solar-power\nicon_color: rgba(255,167,38,1)\nunit: W\ndecimals: 1\nlabel_position: top\nicon_offset_y: -5\nring:\n  min: 0\n  max: 10000\n  width: 10\n  colorLow: rgb(76,175,80)\n  colorMid: rgb(255,193,7)\n  colorHigh: rgb(244,67,54)\nstyle:\n  border_color: rgba(102,187,106,0.45)\n  font_size: 16\n  label_size: 14\n  padding: 4\n  icon_size: 31\n",
             "ring": {
               "min": 0,
               "max": 10000,
@@ -277,8 +285,132 @@
         },
         "x": 0,
         "y": 26,
-        "widthOverride": 184,
-        "heightOverride": 188
+        "widthOverride": 174,
+        "heightOverride": 185
+      },
+      {
+        "id": "f58d273a-d906-4da9-8c35-399be98afc2e",
+        "templateId": "__custom_card__",
+        "label": "🚗 Garage",
+        "roomId": "42def95b-86da-4fd0-a7d5-b3a6050a580b",
+        "koBindings": {},
+        "variableValues": {
+          "__customCard": {
+            "cardType": "panel",
+            "label": "🚗 Garage",
+            "icon": "",
+            "action": "none",
+            "_yaml": "type: panel\nname: \"🚗 Garage\"\npanel:\n  control:\n    entity: 4/0/0\n    icon: mdi:garage\n    label: Garagentor\n    status:\n      \"1\": Geöffnet\n      \"0\": Geschlossen\n    buttons:\n      - label: Auf\n        icon: mdi:arrow-up-bold\n        entity: 1/2/51\n        hold_seconds: 2\n      - label: Zu\n        icon: mdi:arrow-down-bold\n        entity: 1/2/52\n        hold_seconds: 2\n        color_active: \"255,193,7\"\n  tiles:\n    - name: 4/0/0\n      entity: 1/2/53\n      icon: mdi:garage-variant\n      status:\n        \"0\": { label: \"Nicht zu\", color: \"255,152,0\", badge: \"alert\" }\n        \"1\": { label: \"Geschlossen\", color: \"76,175,80\", badge: \"check-circle\" }\n    - name: Tor offen\n      entity: 4/0/0\n      icon: mdi:garage-open-variant\n      status:\n        \"1\": { label: \"Geöffnet\", color: \"244,67,54\", badge: \"alert\" }\n        \"0\": { label: \"Zu\", color: \"158,158,158\", badge: \"lock\" }\n    - name: Licht Garage\n      entity: 1/4/6\n      icon: mdi:ceiling-light\n      action: toggle\n      send_entity: 1/1/6\n      status:\n        \"1\": { label: \"An\", color: \"255,193,7\" }\n        \"0\": { label: \"Aus\", color: \"158,158,158\" }\n    - name: Nebenraum\n      entity: 1/2/57\n      icon: mdi:ceiling-light\n      action: toggle\n      send_entity: 1/2/58\n      status:\n        \"1\": { label: \"An\", color: \"255,193,7\" }\n        \"0\": { label: \"Aus\", color: \"158,158,158\" }\n  alert:\n    entity: 4/0/1\n    when: \"== 1\"\n    text: \"Achtung: Garagentor ist geöffnet!\"\n    color: \"244,67,54\"\n",
+            "panel": {
+              "control": {
+                "entity": "4/0/0",
+                "icon": "garage",
+                "label": "Garagentor",
+                "status": {
+                  "0": "Geschlossen",
+                  "1": "Geöffnet"
+                },
+                "buttons": [
+                  {
+                    "label": "Auf",
+                    "icon": "arrow-up-bold",
+                    "entity": "1/2/51",
+                    "value": 1,
+                    "holdSeconds": 2
+                  },
+                  {
+                    "label": "Zu",
+                    "icon": "arrow-down-bold",
+                    "entity": "1/2/52",
+                    "value": 1,
+                    "holdSeconds": 2,
+                    "colorActive": "255,193,7"
+                  }
+                ]
+              },
+              "tiles": [
+                {
+                  "name": "4/0/0",
+                  "entity": "1/2/53",
+                  "icon": "garage-variant",
+                  "status": {
+                    "0": {
+                      "label": "Nicht zu",
+                      "color": "255,152,0",
+                      "badge": "alert"
+                    },
+                    "1": {
+                      "label": "Geschlossen",
+                      "color": "76,175,80",
+                      "badge": "check-circle"
+                    }
+                  }
+                },
+                {
+                  "name": "Tor offen",
+                  "entity": "4/0/0",
+                  "icon": "garage-open-variant",
+                  "status": {
+                    "0": {
+                      "label": "Zu",
+                      "color": "158,158,158",
+                      "badge": "lock"
+                    },
+                    "1": {
+                      "label": "Geöffnet",
+                      "color": "244,67,54",
+                      "badge": "alert"
+                    }
+                  }
+                },
+                {
+                  "name": "Licht Garage",
+                  "entity": "1/4/6",
+                  "icon": "ceiling-light",
+                  "action": "toggle",
+                  "sendEntity": "1/1/6",
+                  "status": {
+                    "0": {
+                      "label": "Aus",
+                      "color": "158,158,158"
+                    },
+                    "1": {
+                      "label": "An",
+                      "color": "255,193,7"
+                    }
+                  }
+                },
+                {
+                  "name": "Nebenraum",
+                  "entity": "1/2/57",
+                  "icon": "ceiling-light",
+                  "action": "toggle",
+                  "sendEntity": "1/2/58",
+                  "status": {
+                    "0": {
+                      "label": "Aus",
+                      "color": "158,158,158"
+                    },
+                    "1": {
+                      "label": "An",
+                      "color": "255,193,7"
+                    }
+                  }
+                }
+              ],
+              "alert": {
+                "entity": "4/0/1",
+                "when": "== 1",
+                "text": "Achtung: Garagentor ist geöffnet!",
+                "color": "244,67,54"
+              }
+            }
+          }
+        },
+        "x": 0,
+        "y": 226,
+        "widthOverride": 394,
+        "heightOverride": 476
       }
     ],
     "background": {
