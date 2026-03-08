@@ -22,8 +22,8 @@
           "var25": 10,
           "var28": 10
         },
-        "x": 23,
-        "y": 75,
+        "x": 285,
+        "y": 10,
         "widthOverride": 108,
         "heightOverride": 103
       },
@@ -56,10 +56,10 @@
           "var15": "PV-Leistung",
           "unit": " "
         },
-        "x": 235,
-        "y": 86,
-        "widthOverride": 142,
-        "heightOverride": 146
+        "x": 171,
+        "y": 83,
+        "widthOverride": 154,
+        "heightOverride": 148
       },
       {
         "id": "d1b32d5a-aeaf-412f-aab3-810e8303c0a7",
@@ -128,11 +128,17 @@
           "ko1": "IKO:2_Ecowitt WS90:A3",
           "ko2": "IKO:2_Ecowitt WS90:A9"
         },
-        "variableValues": {},
-        "x": 108,
-        "y": 98,
-        "widthOverride": 154,
-        "heightOverride": 149
+        "variableValues": {
+          "var9": "2,227,201",
+          "var10": 20,
+          "var11": 2,
+          "unit": "m/s",
+          "var15": 30
+        },
+        "x": 23,
+        "y": 85,
+        "widthOverride": 170,
+        "heightOverride": 170
       }
     ]
   },

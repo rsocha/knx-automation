@@ -165,6 +165,12 @@ REST-API unter `http://<IP>:8000/api/`
 
 ## Changelog
 
+### v3.7.10
+- **Resize-Handle Fix** – Punkt sitzt jetzt direkt am Rahmen (`right:0, bottom:0`) statt 3px außerhalb; Größenanzeige (z.B. "160×140") jetzt innerhalb des Widgets statt darunter
+
+### v3.7.9
+- **Compass Speedometer** – 1:1 Nachbau des EDOMI VSE-Originals: 64 Ticks, Pfeil mit Einkerbung an der Basis (außen→innen), "N" oben, S-Positionsmarker unten, Schwellen-Rahmenfarbe, Richtung als "337° NNW", dünner Wert (font-weight 300), alle Original-Variablen (var1-var14)
+
 ### v3.7.8
 - **Compass Speedometer Fix** – Pfeile zeigen jetzt von außen nach innen (Basis am Ring, Spitze zum Zentrum); dunkles Design mit konfigurierbarer Hintergrundfarbe (var7), Deckkraft (var8), Rahmenfarbe (var9), Rahmen-Deckkraft (var10), Rahmenstärke (var11), Border-Radius (var12), Tick-Farbe (var13) – konsistent mit allen anderen Widgets
 
