@@ -165,6 +165,15 @@ REST-API unter `http://<IP>:8000/api/`
 
 ## Changelog
 
+### v3.7.8
+- **Compass Speedometer Fix** – Pfeile zeigen jetzt von außen nach innen (Basis am Ring, Spitze zum Zentrum); dunkles Design mit konfigurierbarer Hintergrundfarbe (var7), Deckkraft (var8), Rahmenfarbe (var9), Rahmen-Deckkraft (var10), Rahmenstärke (var11), Border-Radius (var12), Tick-Farbe (var13) – konsistent mit allen anderen Widgets
+
+### v3.7.7
+- **Logik-Editor Ports-Fix** – Handle-Punkte (Verbindungspunkte) sind jetzt exakt auf der Zeile des jeweiligen Ein-/Ausgangs; bei unterschiedlicher Anzahl Ein-/Ausgänge werden Leer-Zeilen eingefügt; fixe Zeilenhöhe (44px) verhindert Verschiebung
+
+### v3.7.6
+- **Compass Speedometer Redesign** – Komplett neues Design nach Vorbild: helles/dunkles Theme (var16), feine 72er-Teilung, kleine Dreieck-Pfeile, "N" oben, großer Wert mittig, Richtungstext, konfigurierbarer Wert-Schriftgröße
+
 ### v3.7.5
 - **Custom Card Vorschau-Fix** – Ring-Vorschau im Dialog zeigt jetzt Gradient, Label-Position, Icon-Offset, Padding und Label-Größe korrekt an
 - **Custom Card Padding** – Neues YAML-Feld `style.padding` für Abstand zum Rahmen (Standard: 8px)

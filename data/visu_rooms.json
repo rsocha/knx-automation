@@ -56,8 +56,8 @@
           "var15": "PV-Leistung",
           "unit": " "
         },
-        "x": 185,
-        "y": 84,
+        "x": 235,
+        "y": 86,
         "widthOverride": 142,
         "heightOverride": 146
       },
@@ -118,6 +118,21 @@
         "y": 546,
         "widthOverride": 404,
         "heightOverride": 270
+      },
+      {
+        "id": "e127c35f-79fc-4ebc-baba-3501383cdd17",
+        "templateId": "compass-speedometer",
+        "label": "Wind",
+        "roomId": "9ba6a4e8-3865-4d9e-a857-b436490c0ffc",
+        "koBindings": {
+          "ko1": "IKO:2_Ecowitt WS90:A3",
+          "ko2": "IKO:2_Ecowitt WS90:A9"
+        },
+        "variableValues": {},
+        "x": 108,
+        "y": 98,
+        "widthOverride": 154,
+        "heightOverride": 149
       }
     ]
   },
@@ -174,23 +189,23 @@
             "cardType": "ring",
             "label": "PV Ertrag",
             "icon": "solar-power",
-            "iconSize": 35,
+            "iconSize": 31,
             "iconColor": "rgba(255,167,38,1)",
             "unit": "W",
             "decimals": 1,
+            "koAddress": "IKO:1_Fronius Gen24 Solar API:A4",
             "action": "none",
             "borderColor": "rgba(102,187,106,0.45)",
-            "bgOpacity": 6,
             "fontSize": 20,
-            "koAddress": "IKO:1_Fronius Gen24 Solar API:A4",
+            "labelSize": 14,
+            "padding": 4,
             "labelPosition": "top",
-            "labelOffsetX": 0,
-            "labelOffsetY": 0,
-            "_yaml": "type: ring\nentity: IKO:1_Fronius Gen24 Solar API:A4\nname: PV Ertrag\nicon: mdi:solar-power\nicon_color: rgba(255,167,38,1)\nunit: W\ndecimals: 1\nring:\n  min: 0\n  max: 10000\n  width: 9\n  colorLow: rgb(76,175,80)\n  colorMid: rgb(255,193,7)\n  colorHigh: rgb(244,67,54)\nstyle:\n  border_color: rgba(102,187,106,0.45)\n  font_size: 20\n  icon_size: 35\nlabel_position: top        \nlabel_offset_x: 0         # Label horizontal verschieben \nlabel_offset_y: 0        # Label vertikal verschieben \n",
+            "iconOffsetY": -5,
+            "_yaml": "type: ring\nentity: IKO:1_Fronius Gen24 Solar API:A4\nname: PV Ertrag\nicon: mdi:solar-power\nicon_color: rgba(255,167,38,1)\nunit: W\ndecimals: 1\nlabel_position: top\nring:\n  min: 0\n  max: 10000\n  width: 10\n  colorLow: rgb(76,175,80)\n  colorMid: rgb(255,193,7)\n  colorHigh: rgb(244,67,54)\nstyle:\n  border_color: rgba(102,187,106,0.45)\n  font_size: 20\n  icon_size: 31\n  label_size: 14       # Bezeichnung-Größe\n  padding: 4           # Abstand zum Rahmen (Standard: 8)\nicon_offset_y: -5\n",
             "ring": {
               "min": 0,
               "max": 10000,
-              "width": 9,
+              "width": 10,
               "colorLow": "rgb(76,175,80)",
               "colorMid": "rgb(255,193,7)",
               "colorHigh": "rgb(244,67,54)"
@@ -200,7 +215,7 @@
         "x": 0,
         "y": 26,
         "widthOverride": 184,
-        "heightOverride": 201
+        "heightOverride": 188
       }
     ],
     "background": {
