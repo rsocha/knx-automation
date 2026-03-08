@@ -165,6 +165,9 @@ REST-API unter `http://<IP>:8000/api/`
 
 ## Changelog
 
+### v3.7.11
+- **Resize Handle exakt am Rahmen** – Doppel-Skalierung behoben: Widgets die intern `instance.widthOverride` lesen (Compass, MediaPlayer, SwitchCard, SensorCard) wurden doppelt verkleinert; jetzt wird dem Widget eine bereinigte Instance ohne Overrides übergeben, CSS `scale(scaleX, scaleY)` füllt den Container komplett; ResizableWidget hat `overflow:hidden`
+
 ### v3.7.10
 - **Resize-Handle Fix** – Punkt sitzt jetzt direkt am Rahmen (`right:0, bottom:0`) statt 3px außerhalb; Größenanzeige (z.B. "160×140") jetzt innerhalb des Widgets statt darunter
 
