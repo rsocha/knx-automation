@@ -165,6 +165,15 @@ REST-API unter `http://<IP>:8000/api/`
 
 ## Changelog
 
+### v3.8.2
+- **Müllabfuhr Datumslogik** – Entity liefert jetzt ein Datum (vom iCal-Baustein), Card berechnet automatisch Tage bis Abholung und zeigt "in X Tagen (DD.MM.)" / "Morgen (DD.MM.)" / "Heute (DD.MM.)"; Farbwechsel: 1 Tag vorher = Warnfarbe, am Tag = rot; "Nächste Abholung" wird automatisch aus dem frühesten Termin berechnet (kein extra `next_entity` KO nötig); Datumsformate: ISO `2025-03-22`, deutsch `22.03.2025` oder `22.03.`, Unix-Timestamp
+
+### v3.8.1
+- **Widget Breiten-Fix** – Bearbeiten/Löschen-Buttons haben Widgets nicht mehr breiter gemacht; äußerer Container hat jetzt explizite `width/height`, Buttons ragen visuell darüber hinaus ohne die Größe zu beeinflussen
+
+### v3.8.0
+- **Neue Custom Card: Müllabfuhr** – `type: waste` mit konfigurierbaren Tonnen (name, entity, icon, Farben für normal/heute/morgen), "Nächste Abholung" Zeile, 2×2 Grid mit farbigen Rahmen, Alert-Banner bei Heute/Morgen, Preset in der Bibliothek
+
 ### v3.7.11
 - **Resize Handle exakt am Rahmen** – Doppel-Skalierung behoben: Widgets die intern `instance.widthOverride` lesen (Compass, MediaPlayer, SwitchCard, SensorCard) wurden doppelt verkleinert; jetzt wird dem Widget eine bereinigte Instance ohne Overrides übergeben, CSS `scale(scaleX, scaleY)` füllt den Container komplett; ResizableWidget hat `overflow:hidden`
 

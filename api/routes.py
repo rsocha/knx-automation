@@ -20,7 +20,7 @@ from logic.manager import ALL_BUILTIN_BLOCKS
 logger = logging.getLogger(__name__)
 
 # Single source of truth for version — update HERE only
-APP_VERSION = "3.7.11"
+APP_VERSION = "3.8.2"
 router = APIRouter()
 
 # ============ Global WebSocket broadcast for telegram log ============

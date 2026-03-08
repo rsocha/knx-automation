@@ -24,8 +24,8 @@
         },
         "x": 285,
         "y": 10,
-        "widthOverride": 108,
-        "heightOverride": 103
+        "widthOverride": 86,
+        "heightOverride": 78
       },
       {
         "id": "13cc9aa2-31bd-424d-82f0-6e2f7423df16",
@@ -56,10 +56,10 @@
           "var15": "PV-Leistung",
           "unit": " "
         },
-        "x": 171,
-        "y": 83,
-        "widthOverride": 154,
-        "heightOverride": 148
+        "x": 211,
+        "y": 98,
+        "widthOverride": 157,
+        "heightOverride": 151
       },
       {
         "id": "d1b32d5a-aeaf-412f-aab3-810e8303c0a7",
@@ -98,10 +98,10 @@
           "var12": 25,
           "unit": "%"
         },
-        "x": 20,
-        "y": 20,
-        "widthOverride": 138,
-        "heightOverride": 40
+        "x": 18,
+        "y": 18,
+        "widthOverride": 128,
+        "heightOverride": 46
       },
       {
         "id": "97b3b715-2469-4e80-80a5-f746f34e2caf",
@@ -114,9 +114,9 @@
         "variableValues": {
           "var1": "Stundenpreise morgen"
         },
-        "x": 13,
-        "y": 546,
-        "widthOverride": 404,
+        "x": 12,
+        "y": 534,
+        "widthOverride": 368,
         "heightOverride": 270
       },
       {
@@ -137,8 +137,8 @@
         },
         "x": 23,
         "y": 85,
-        "widthOverride": 170,
-        "heightOverride": 170
+        "widthOverride": 161,
+        "heightOverride": 157
       }
     ]
   },
@@ -171,6 +171,63 @@
         "y": 23,
         "widthOverride": 401,
         "heightOverride": 441
+      },
+      {
+        "id": "fe82c955-5217-429f-a18b-0ad8a0739a98",
+        "templateId": "__custom_card__",
+        "label": "🗑️ Müllabfuhr",
+        "roomId": "86a96428-1e0c-4847-a93f-bc2b90bdb526",
+        "koBindings": {},
+        "variableValues": {
+          "__customCard": {
+            "cardType": "waste",
+            "label": "🗑️ Müllabfuhr",
+            "icon": "",
+            "action": "none",
+            "_yaml": "type: waste\nname: \"🗑️ Müllabfuhr\"\nwaste:\n  next_entity: 1/2/100\n  items:\n    - name: Restmüll\n      entity: IKO:14_iCal-Termine:A4\n      icon: mdi:trash-can\n      color: \"158,158,158\"\n      color_today: \"244,67,54\"\n      color_tomorrow: \"255,152,0\"\n    - name: Gelber Sack\n      entity: 1/2/102\n      icon: mdi:trash-can\n      color: \"158,158,158\"\n      color_today: \"244,67,54\"\n      color_tomorrow: \"255,235,59\"\n    - name: Papiertonne\n      entity: 1/2/103\n      icon: mdi:trash-can\n      color: \"158,158,158\"\n      color_today: \"244,67,54\"\n      color_tomorrow: \"33,150,243\"\n    - name: Werkstoffzentrum\n      entity: 1/2/104\n      icon: mdi:trash-can\n      color: \"158,158,158\"\n      color_today: \"244,67,54\"\n      color_tomorrow: \"139,69,19\"\n",
+            "waste": {
+              "nextEntity": "1/2/100",
+              "items": [
+                {
+                  "name": "Restmüll",
+                  "entity": "IKO:14_iCal-Termine:A4",
+                  "icon": "trash-can",
+                  "color": "158,158,158",
+                  "color_today": "244,67,54",
+                  "color_tomorrow": "255,152,0"
+                },
+                {
+                  "name": "Gelber Sack",
+                  "entity": "1/2/102",
+                  "icon": "trash-can",
+                  "color": "158,158,158",
+                  "color_today": "244,67,54",
+                  "color_tomorrow": "255,235,59"
+                },
+                {
+                  "name": "Papiertonne",
+                  "entity": "1/2/103",
+                  "icon": "trash-can",
+                  "color": "158,158,158",
+                  "color_today": "244,67,54",
+                  "color_tomorrow": "33,150,243"
+                },
+                {
+                  "name": "Werkstoffzentrum",
+                  "entity": "1/2/104",
+                  "icon": "trash-can",
+                  "color": "158,158,158",
+                  "color_today": "244,67,54",
+                  "color_tomorrow": "139,69,19"
+                }
+              ]
+            }
+          }
+        },
+        "x": 9,
+        "y": 457,
+        "widthOverride": 380,
+        "heightOverride": 420
       }
     ],
     "background": {
