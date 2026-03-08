@@ -1,6 +1,6 @@
 # KNX Automation
 
-![Version](https://img.shields.io/badge/version-3.6.6-blue)
+![Version](https://img.shields.io/badge/version-3.9.3-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Raspberry_Pi_%7C_Linux-orange)](https://www.raspberrypi.com/)
 [![KNX](https://img.shields.io/badge/KNX-IP_Tunneling-red)](https://www.knx.org/)
